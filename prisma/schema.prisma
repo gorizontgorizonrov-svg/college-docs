@@ -1,0 +1,237 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String?   @unique
+  phone        String?   @unique
+  passwordHash String?
+  role         Role      @default(APPLICANT)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  applicant Applicant?
+  moderator Moderator?
+  authoredDocuments InternalDocument[] @relation("DocumentAuthor")
+  approvals         DocumentApproval[] @relation("DocumentApprover")
+}
+
+enum Role {
+  APPLICANT
+  MODERATOR
+  ADMIN
+}
+
+model Applicant {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  firstName    String
+  lastName     String
+  middleName   String?
+  birthDate    DateTime
+  schoolCertType CertType
+  avgGrade     Decimal   @db.Decimal(3, 2)
+  phoneNumber  String
+
+  user         User           @relation(fields: [userId], references: [id])
+  documents   Document[]
+  applications Application[]
+
+  createdAt   DateTime       @default(now())
+}
+
+enum CertType {
+  GRADE_9
+  GRADE_11
+}
+
+model Specialty {
+  id            String   @id @default(cuid())
+  code          String
+  name          String
+  description  String?
+  budgetPlaces  Int      @default(0)
+  contractPlaces Int      @default(0)
+
+  applications Application[]
+
+  createdAt    DateTime  @default(now())
+}
+
+model Document {
+  id              String    @id @default(cuid())
+  applicantId     String
+  type            DocType
+  fileUrl         String
+  fileName        String
+  fileSize        Int
+  mimeType        String
+  status          DocStatus @default(PENDING)
+  rejectionReason String?
+
+  applicant     Applicant  @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  uploadedAt    DateTime   @default(now())
+  verifiedAt    DateTime?
+}
+
+enum DocType {
+  SCHOOL_CERT
+  PASSPORT
+  MED_FORM_086
+  MILITARY_DOC
+  PHOTO
+  OTHER
+}
+
+enum DocStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+model Application {
+  id           String    @id @default(cuid())
+  applicantId  String
+  specialtyId  String
+  priority     Int       @default(1)
+  status       AppStatus @default(SUBMITTED)
+
+  applicant    Applicant   @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  specialty    Specialty   @relation(fields: [specialtyId], references: [id])
+  reviews     Review[]
+
+  submittedAt  DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  enrolledAt  DateTime?
+}
+
+enum AppStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  ENROLLED
+}
+
+model Review {
+  id            String        @id @default(cuid())
+  applicationId String
+  moderatorId   String
+  decision     ReviewDecision
+  comment      String?
+
+  application  Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  moderator    Moderator     @relation(fields: [moderatorId], references: [id])
+
+  createdAt     DateTime      @default(now())
+}
+
+enum ReviewDecision {
+  APPROVE
+  REJECT
+  REQUEST_INFO
+}
+
+enum InternalDocType {
+  ORDER
+  DIRECTIVE
+  PROTOCOL
+  ACT
+  MEMO
+  CONTRACT
+  REPORT
+}
+
+model Moderator {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  firstName   String
+  lastName    String
+  position    String?
+  department String?
+
+  user        User     @relation(fields: [userId], references: [id])
+  reviews     Review[]
+
+  createdAt   DateTime  @default(now())
+}
+
+model InternalDocument {
+  id         String          @id @default(cuid())
+  title      String
+  content    String?
+  type       InternalDocType
+  status     DocStatus       @default(PENDING)
+  number     String?
+  fileUrl    String?
+  author     User            @relation("DocumentAuthor", fields: [authorId], references: [id])
+  authorId   String
+  approvals  DocumentApproval[]
+
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([authorId])
+  @@index([status])
+  @@index([type])
+}
+
+model DocumentApproval {
+  id          String          @id @default(cuid())
+  document    InternalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  documentId  String
+  approver    User            @relation("DocumentApprover", fields: [approverId], references: [id])
+  approverId  String
+  decision   ReviewDecision?
+  comment    String?
+  createdAt   DateTime        @default(now())
+
+  @@index([documentId])
+  @@index([approverId])
+}
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  moderatorId String
+  action      AuditAction
+  entityType  String
+  entityId   String
+  oldStatus  String?
+  newStatus  String?
+  comment    String?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime    @default(now())
+
+  @@index([moderatorId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+enum AuditAction {
+  APPROVE
+  REJECT
+  REQUEST_INFO
+  UPDATE_STATUS
+  CREATE
+  DELETE
+  EXPORT
+  ENROLL
+}
+
+model RateLimit {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  attempts  Int      @default(0)
+  lastTry   DateTime @default(now())
+  blockedUntil DateTime?
+  
+  @@index([key])
+}

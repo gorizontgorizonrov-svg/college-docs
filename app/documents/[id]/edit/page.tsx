@@ -1,0 +1,64 @@
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { DocumentUploadForm } from "../../upload/DocumentUploadForm";
+import { prisma } from "@/lib/prisma";
+
+export default async function DocumentEditPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  if (session.user.role !== "APPLICANT") {
+    redirect("/moderator");
+  }
+
+  const { id } = await params;
+
+  const document = await prisma.document.findUnique({
+    where: { id },
+    include: { applicant: true },
+  });
+
+  if (!document) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-20 md:pb-4">
+        <div className="max-w-xl mx-auto p-4 space-y-4">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/documents"
+              className="flex items-center justify-center w-10 h-10 bg-white rounded-lg border border-gray-200 hover:bg-gray-50"
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </Link>
+            <h1 className="text-xl font-bold text-gray-900">Документ не найден</h1>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-4">
+      <div className="max-w-xl mx-auto p-4 space-y-4">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/documents"
+            className="flex items-center justify-center w-10 h-10 bg-white rounded-lg border border-gray-200 hover:bg-gray-50"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-600" />
+          </Link>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Замена документа</h1>
+        </div>
+
+        <DocumentUploadForm />
+      </div>
+    </div>
+  );
+}
