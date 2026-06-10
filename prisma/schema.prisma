@@ -7,136 +7,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id           String    @id @default(cuid())
-  email        String?   @unique
-  phone        String?   @unique
-  passwordHash String?
-  role         Role      @default(APPLICANT)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  applicant Applicant?
-  moderator Moderator?
-  authoredDocuments InternalDocument[] @relation("DocumentAuthor")
-  approvals         DocumentApproval[] @relation("DocumentApprover")
-}
+// ============ ENUMS ============
 
 enum Role {
-  APPLICANT
-  MODERATOR
+  INITIATOR
+  VALIDATOR
+  SIGNER
+  REGISTRAR
   ADMIN
-}
-
-model Applicant {
-  id            String    @id @default(cuid())
-  userId        String    @unique
-  firstName    String
-  lastName     String
-  middleName   String?
-  birthDate    DateTime
-  schoolCertType CertType
-  avgGrade     Decimal   @db.Decimal(3, 2)
-  phoneNumber  String
-
-  user         User           @relation(fields: [userId], references: [id])
-  documents   Document[]
-  applications Application[]
-
-  createdAt   DateTime       @default(now())
-}
-
-enum CertType {
-  GRADE_9
-  GRADE_11
-}
-
-model Specialty {
-  id            String   @id @default(cuid())
-  code          String
-  name          String
-  description  String?
-  budgetPlaces  Int      @default(0)
-  contractPlaces Int      @default(0)
-
-  applications Application[]
-
-  createdAt    DateTime  @default(now())
-}
-
-model Document {
-  id              String    @id @default(cuid())
-  applicantId     String
-  type            DocType
-  fileUrl         String
-  fileName        String
-  fileSize        Int
-  mimeType        String
-  status          DocStatus @default(PENDING)
-  rejectionReason String?
-
-  applicant     Applicant  @relation(fields: [applicantId], references: [id], onDelete: Cascade)
-
-  uploadedAt    DateTime   @default(now())
-  verifiedAt    DateTime?
-}
-
-enum DocType {
-  SCHOOL_CERT
-  PASSPORT
-  MED_FORM_086
-  MILITARY_DOC
-  PHOTO
-  OTHER
-}
-
-enum DocStatus {
-  PENDING
-  VERIFIED
-  REJECTED
-}
-
-model Application {
-  id           String    @id @default(cuid())
-  applicantId  String
-  specialtyId  String
-  priority     Int       @default(1)
-  status       AppStatus @default(SUBMITTED)
-
-  applicant    Applicant   @relation(fields: [applicantId], references: [id], onDelete: Cascade)
-  specialty    Specialty   @relation(fields: [specialtyId], references: [id])
-  reviews     Review[]
-
-  submittedAt  DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  enrolledAt  DateTime?
-}
-
-enum AppStatus {
-  SUBMITTED
-  UNDER_REVIEW
-  APPROVED
-  REJECTED
-  ENROLLED
-}
-
-model Review {
-  id            String        @id @default(cuid())
-  applicationId String
-  moderatorId   String
-  decision     ReviewDecision
-  comment      String?
-
-  application  Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  moderator    Moderator     @relation(fields: [moderatorId], references: [id])
-
-  createdAt     DateTime      @default(now())
-}
-
-enum ReviewDecision {
-  APPROVE
-  REJECT
-  REQUEST_INFO
 }
 
 enum InternalDocType {
@@ -149,18 +27,116 @@ enum InternalDocType {
   REPORT
 }
 
-model Moderator {
+enum DocumentStatus {
+  DRAFT
+  IN_APPROVAL
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+enum ReviewDecision {
+  APPROVE
+  REJECT
+  RETURN_TO_AUTHOR
+}
+
+enum IncomingStatus {
+  REGISTERED
+  UNDER_RESOLUTION
+  IN_EXECUTION
+  EXECUTED
+  ARCHIVED
+}
+
+enum NotificationType {
+  APPROVAL_REQUEST
+  DOCUMENT_SIGNED
+  DOCUMENT_REJECTED
+  DOCUMENT_RETURNED
+  RESOLUTION_ASSIGNED
+  DEADLINE_REMINDER
+  SYSTEM
+}
+
+enum AuditAction {
+  CREATE
+  EDIT
+  DELETE
+  APPROVE
+  REJECT
+  RETURN
+  SIGN
+  REGISTER
+  ARCHIVE
+  ASSIGN_RESOLUTION
+  EXPORT
+  LOGIN
+}
+
+// ============ MODELS ============
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String?
+  role         Role     @default(INITIATOR)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  employee             Employee?
+  authoredDocuments    InternalDocument[]   @relation("DocumentAuthor")
+  approvals            DocumentApproval[]   @relation("DocumentApprover")
+  signatures           DigitalSignature[]
+  notifications        Notification[]
+  createdVersions      DocumentVersion[]
+  incomingResolutions  IncomingDocument[]   @relation("ResolutionAuthor")
+  createdIncomingDocuments IncomingDocument[] @relation("IncomingCreator")
+}
+
+model Position {
   id          String   @id @default(cuid())
-  userId      String   @unique
-  firstName   String
-  lastName    String
-  position    String?
-  department String?
+  name        String   @unique
+  level       Int
+  description String?
 
-  user        User     @relation(fields: [userId], references: [id])
-  reviews     Review[]
+  employees      Employee[]
+  workflowStages WorkflowStage[] @relation("ApproverPosition")
 
-  createdAt   DateTime  @default(now())
+  createdAt DateTime @default(now())
+}
+
+model Department {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  code        String?  @unique
+  description String?
+
+  employees Employee[]
+
+  createdAt DateTime @default(now())
+}
+
+model Employee {
+  id           String  @id @default(cuid())
+  userId       String  @unique
+  firstName    String
+  lastName     String
+  middleName   String?
+  positionId   String
+  departmentId String?
+  publicKey    String?
+
+  user       User       @relation(fields: [userId], references: [id])
+  position   Position   @relation(fields: [positionId], references: [id])
+  department Department? @relation(fields: [departmentId], references: [id])
+
+  digitalSignatures   DigitalSignature[]
+  incomingExecutions  IncomingDocument[] @relation("IncomingExecutor")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model InternalDocument {
@@ -168,70 +144,184 @@ model InternalDocument {
   title      String
   content    String?
   type       InternalDocType
-  status     DocStatus       @default(PENDING)
+  status     DocumentStatus  @default(DRAFT)
   number     String?
   fileUrl    String?
-  author     User            @relation("DocumentAuthor", fields: [authorId], references: [id])
+  deadline   DateTime?
   authorId   String
-  approvals  DocumentApproval[]
+  author     User            @relation("DocumentAuthor", fields: [authorId], references: [id])
+  workflowId String?
+  workflow   WorkflowTemplate? @relation(fields: [workflowId], references: [id])
 
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
+  approvals  DocumentApproval[]
+  versions   DocumentVersion[]
+  signatures DigitalSignature[]
+  incomingResponseFor IncomingDocument[] @relation("IncomingResponse")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([authorId])
   @@index([status])
   @@index([type])
 }
 
+model DocumentVersion {
+  id         String   @id @default(cuid())
+  documentId String
+  version    Int
+  content    String?
+  fileUrl    String?
+  changeNote String?
+  authorId   String
+  author     User              @relation(fields: [authorId], references: [id])
+  document   InternalDocument  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([documentId, version])
+  @@index([documentId])
+}
+
+model WorkflowTemplate {
+  id      String          @id @default(cuid())
+  name    String
+  docType InternalDocType
+
+  stages    WorkflowStage[]
+  documents InternalDocument[]
+
+  createdAt DateTime @default(now())
+}
+
+model WorkflowStage {
+  id                 String   @id @default(cuid())
+  templateId         String
+  stageOrder         Int
+  approverPositionId String
+  deadlineDays       Int?
+
+  template         WorkflowTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  approverPosition Position         @relation("ApproverPosition", fields: [approverPositionId], references: [id])
+
+  approvals DocumentApproval[]
+
+  createdAt DateTime @default(now())
+
+  @@index([templateId])
+  @@index([stageOrder])
+}
+
 model DocumentApproval {
   id          String          @id @default(cuid())
-  document    InternalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
   documentId  String
-  approver    User            @relation("DocumentApprover", fields: [approverId], references: [id])
+  stageId     String?
   approverId  String
-  decision   ReviewDecision?
-  comment    String?
-  createdAt   DateTime        @default(now())
+  decision    ReviewDecision?
+  comment     String?
+  signatureId String?
+  decidedAt   DateTime?
+
+  document  InternalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  stage     WorkflowStage?   @relation(fields: [stageId], references: [id])
+  approver  User             @relation("DocumentApprover", fields: [approverId], references: [id])
+  signature DigitalSignature? @relation("DocumentSignature", fields: [signatureId], references: [id])
+
+  createdAt DateTime @default(now())
 
   @@index([documentId])
   @@index([approverId])
+
+  @@unique([signatureId])
+}
+
+model DigitalSignature {
+  id            String   @id @default(cuid())
+  documentId    String
+  employeeId    String
+  userId        String
+  signatureData String
+  documentHash  String
+  algorithm     String   @default("aes-256-gcm")
+  isVerified    Boolean  @default(false)
+
+  document InternalDocument @relation(fields: [documentId], references: [id])
+  employee Employee         @relation(fields: [employeeId], references: [id])
+  user     User             @relation(fields: [userId], references: [id])
+  approval DocumentApproval? @relation("DocumentSignature")
+
+  createdAt DateTime @default(now())
+
+  @@index([documentId])
+  @@index([employeeId])
+}
+
+model IncomingDocument {
+  id              String          @id @default(cuid())
+  incomingNumber  String
+  incomingDate    DateTime
+  fromOrg         String
+  outgoingNumber  String?
+  outgoingDate    DateTime?
+  title           String
+  content         String?
+  fileUrl         String?
+  status          IncomingStatus  @default(REGISTERED)
+  resolution      String?
+  resolutionAuthorId String?
+  resolutionDate  DateTime?
+  executorId      String?
+  deadline        DateTime?
+  executedAt      DateTime?
+  responseDocumentId String?
+
+  resolutionAuthor User?             @relation("ResolutionAuthor", fields: [resolutionAuthorId], references: [id])
+  executor         Employee?         @relation("IncomingExecutor", fields: [executorId], references: [id])
+  responseDocument InternalDocument? @relation("IncomingResponse", fields: [responseDocumentId], references: [id])
+  createdById      String
+  createdBy        User              @relation("IncomingCreator", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([incomingNumber])
+  @@index([status])
+  @@index([executorId])
+}
+
+model Notification {
+  id         String           @id @default(cuid())
+  userId     String
+  title      String
+  message    String?
+  type       NotificationType
+  entityType String?
+  entityId   String?
+  isRead     Boolean          @default(false)
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@index([createdAt])
 }
 
 model AuditLog {
   id          String      @id @default(cuid())
-  moderatorId String
+  userId      String
   action      AuditAction
   entityType  String
-  entityId   String
-  oldStatus  String?
-  newStatus  String?
-  comment    String?
-  ipAddress  String?
-  userAgent  String?
-  createdAt  DateTime    @default(now())
+  entityId    String
+  oldStatus   String?
+  newStatus   String?
+  comment     String?
+  ipAddress   String?
+  userAgent   String?
+  signatureId String?
 
-  @@index([moderatorId])
+  createdAt DateTime @default(now())
+
+  @@index([userId])
   @@index([entityType, entityId])
   @@index([createdAt])
-}
-
-enum AuditAction {
-  APPROVE
-  REJECT
-  REQUEST_INFO
-  UPDATE_STATUS
-  CREATE
-  DELETE
-  EXPORT
-  ENROLL
-}
-
-model RateLimit {
-  id        String   @id @default(cuid())
-  key       String   @unique
-  attempts  Int      @default(0)
-  lastTry   DateTime @default(now())
-  blockedUntil DateTime?
-  
-  @@index([key])
 }

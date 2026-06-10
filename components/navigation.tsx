@@ -3,91 +3,316 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { Home, User, FileText, Users, FileEdit, LogOut, Send, ClipboardList, BarChart3 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { ThemeToggle } from "./ThemeToggle";
+import { NotificationDropdown } from "./NotificationDropdown";
+import {
+  LayoutDashboard,
+  FileSignature,
+  FileText,
+  Inbox,
+  Archive,
+  User,
+  LogOut,
+  Search,
+  ChevronDown,
+  List,
+  FileEdit,
+  BookOpen,
+  Clock,
+  RefreshCw,
+  CheckCircle,
+  XCircle,
+  Plus,
+  Settings,
+  Users,
+  ClipboardList,
+  X,
+  Mail,
+  Menu,
+} from "lucide-react";
 
-const applicantNavItems = [
-  { href: "/applicant", label: "Главная", icon: Home },
-  { href: "/documents", label: "Документы", icon: FileText },
-  { href: "/applicant/applications", label: "Заявления", icon: Send },
-  { href: "/applicant/status", label: "Статус", icon: ClipboardList },
-  { href: "/applicant/profile", label: "Профиль", icon: User },
+const navItems = [
+  { href: "/dashboard", label: "Главная", Icon: LayoutDashboard },
+  { href: "/documents/pending", label: "На подпись", Icon: FileSignature, badge: true },
+  { href: "/documents", label: "Документы", Icon: FileText },
+  { href: "/incoming", label: "Входящие", Icon: Inbox },
+  { href: "/archive", label: "Архив", Icon: Archive },
 ];
 
-const moderatorNavItems = [
-  { href: "/moderator", label: "Главная", icon: Home },
-  { href: "/moderator/applications", label: "Заявления", icon: Users },
-  { href: "/moderator/reports", label: "Отчеты", icon: BarChart3 },
-  { href: "/internal-docs", label: "Внутренние документы", icon: FileEdit },
-];
+function getInitials(name?: string, email?: string) {
+  if (name) {
+    const parts = name.split(" ");
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return parts[0][0].toUpperCase();
+  }
+  return email?.[0]?.toUpperCase() || "?";
+}
 
-export function Navigation() {
+const roleLabels: Record<string, string> = {
+  INITIATOR: "Инициатор",
+  VALIDATOR: "Согласующий",
+  SIGNER: "Подписант",
+  REGISTRAR: "Регистратор",
+  ADMIN: "Администратор",
+};
+
+export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  const userRole = session?.user?.role;
-  const isAuthorized = status === "authenticated";
+  const isAuth = status === "authenticated";
 
-  const navItems = userRole === "APPLICANT" ? applicantNavItems : userRole === "MODERATOR" || userRole === "ADMIN" ? moderatorNavItems : [];
-
-  const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/login" });
-  };
-
-  const renderNavItem = (item: { href: string; label: string; icon: React.ElementType }) => {
-    const Icon = item.icon;
-    const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+  if (status === "loading" || !isAuth) {
     return (
-      <Link
-        key={item.href}
-        href={item.href}
-        className={`flex flex-col items-center justify-center py-3 px-2 md:flex-row md:gap-2 text-xs md:text-sm transition-colors min-h-[44px] ${
-          isActive
-            ? "text-blue-600 md:bg-blue-50 md:rounded-lg md:px-4"
-            : "text-gray-600 hover:text-gray-900"
-        }`}
-      >
-        <Icon className="w-5 h-5 md:w-4 md:h-4" />
-        <span className="hidden sm:inline">{item.label}</span>
-      </Link>
-    );
-  };
-
-  if (status === "loading") {
-    return (
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:relative md:border-b md:border-gray-200 md:bg-transparent z-50">
-        <div className="flex justify-around md:justify-start md:px-4 md:py-2 max-w-screen-xl mx-auto">
-          <div className="flex items-center justify-center py-3 px-2 text-gray-400">
-            <span className="text-sm">Загрузка...</span>
+      <header className="topbar">
+        <Link href="/login" className="logo">
+          <div className="logo-mark">ЖАК</div>
+          <div>
+            <div className="logo-name">СЭД ЖАК ЖАГУ</div>
+            <div className="logo-sub">Электронный документооборот</div>
           </div>
+        </Link>
+        <div className="topbar-right">
+          <ThemeToggle />
         </div>
-      </nav>
+      </header>
     );
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:relative md:border-b md:border-gray-200 md:bg-transparent z-50">
-      <div className="flex justify-around md:justify-start md:px-4 md:py-2 md:gap-1 max-w-screen-xl mx-auto">
-        {isAuthorized && navItems.length > 0 ? (
-          navItems.map(renderNavItem)
-        ) : (
-          <Link
-            href="/login"
-            className="flex flex-col items-center justify-center py-3 px-2 md:flex-row md:gap-2 text-xs md:text-sm text-gray-600 hover:text-gray-900 min-h-[44px]"
-          >
-            <User className="w-5 h-5 md:w-4 md:h-4" />
-            <span className="hidden sm:inline">Войти</span>
-          </Link>
-        )}
-        {isAuthorized && (
-          <button
-            onClick={handleSignOut}
-            className="flex flex-col items-center justify-center py-3 px-2 md:flex-row md:gap-2 text-xs md:text-sm text-gray-600 hover:text-red-600 transition-colors min-h-[44px]"
-          >
-            <LogOut className="w-5 h-5 md:w-4 md:h-4" />
-            <span className="hidden sm:inline">Выйти</span>
+    <header className="topbar">
+      <div className="topbar-left">
+        {onToggleSidebar && (
+          <button className="ib sidebar-toggle" onClick={onToggleSidebar} title="Меню">
+            <Menu size={18} />
           </button>
         )}
+        <Link href="/dashboard" className="logo">
+          <div className="logo-mark">ЖАК</div>
+          <div>
+            <div className="logo-name">СЭД ЖАК ЖАГУ</div>
+            <div className="logo-sub">Электронный документооборот</div>
+          </div>
+        </Link>
       </div>
-    </nav>
+
+      <nav className="nav">
+        {navItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`ni ${
+              pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href + "/"))
+                ? "on"
+                : ""
+            }`}
+          >
+            <item.Icon size={18} />
+            {item.label}
+            {item.badge && pathname.startsWith("/documents/pending") && <span className="ndot" />}
+          </Link>
+        ))}
+      </nav>
+
+      <div className="topbar-right">
+        <button className="ib" title="Поиск"><Search size={18} /></button>
+        <NotificationDropdown />
+        <ThemeToggle />
+        <div className="dv" />
+        <div className="user-pill" onClick={() => setUserMenuOpen(true)}>
+          <div className="uav">{getInitials(undefined, session?.user?.email || undefined)}</div>
+          <div>
+            <div className="uname">{session?.user?.email?.split("@")[0] || "User"}</div>
+            <div className="urole">{session?.user?.role || ""}</div>
+          </div>
+          <ChevronDown size={12} style={{ color: "var(--text-muted)" }} />
+        </div>
+        <UserDrawer open={userMenuOpen} onClose={() => setUserMenuOpen(false)} />
+      </div>
+    </header>
+  );
+}
+
+function UserDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { data: session } = useSession();
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleSignOut = useCallback(async () => {
+    setSigningOut(true);
+    const redirect = () => { window.location.href = "/login"; };
+    const fallback = setTimeout(redirect, 3000);
+    try {
+      await signOut({ redirect: false });
+    } catch {
+      // ignore
+    }
+    clearTimeout(fallback);
+    redirect();
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [open, onClose]);
+
+  return (
+    <>
+      {open && <div className="drawer-overlay" onClick={onClose} />}
+      <div className={`drawer ${open ? "drawer-open" : ""}`}>
+        <div className="drawer-header">
+          <div className="drawer-title">Профиль</div>
+          <button className="drawer-close" onClick={onClose}><X size={18} /></button>
+        </div>
+
+        <div className="drawer-user">
+          <div className="drawer-avatar">{getInitials(undefined, session?.user?.email || undefined)}</div>
+          <div className="drawer-name">{session?.user?.email?.split("@")[0] || "User"}</div>
+          <div className="drawer-role">{roleLabels[session?.user?.role || ""] || session?.user?.role || ""}</div>
+        </div>
+
+        <div className="drawer-body">
+          <Link href="/profile" className="drawer-item" onClick={onClose}>
+            <User size={18} />
+            <div>
+              <div className="drawer-item-title">Профиль</div>
+              <div className="drawer-item-sub">Личные данные и настройки</div>
+            </div>
+          </Link>
+          <Link href="/dashboard" className="drawer-item" onClick={onClose}>
+            <LayoutDashboard size={18} />
+            <div>
+              <div className="drawer-item-title">Дашборд</div>
+              <div className="drawer-item-sub">Сводка по документам</div>
+            </div>
+          </Link>
+          <Link href="/profile" className="drawer-item" onClick={onClose}>
+            <Mail size={18} />
+            <div>
+              <div className="drawer-item-title">{session?.user?.email || "—"}</div>
+              <div className="drawer-item-sub">Электронная почта</div>
+            </div>
+          </Link>
+        </div>
+
+        <div className="drawer-footer">
+          <button className="drawer-item drawer-item-danger" onClick={handleSignOut} disabled={signingOut}>
+            <LogOut size={18} />
+            <div>
+              <div className="drawer-item-title">{signingOut ? "Выход..." : "Выйти"}</div>
+              <div className="drawer-item-sub">Завершить сеанс</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+const sidebarSections: {
+  label: string;
+  items: { href: string; label: string; Icon: any; adminOnly?: boolean; createOnly?: boolean }[];
+}[] = [
+  {
+    label: "Документы",
+    items: [
+      { href: "/documents?type=DIRECTIVE", label: "Распоряжения", Icon: List },
+      { href: "/documents?type=ORDER", label: "Приказы", Icon: FileText },
+      { href: "/documents?type=MEMO", label: "Служебные записки", Icon: FileEdit },
+      { href: "/documents?type=CONTRACT", label: "Договоры", Icon: BookOpen },
+    ],
+  },
+  {
+    label: "Статусы",
+    items: [
+      { href: "/documents/pending", label: "Ожидают меня", Icon: Clock },
+      { href: "/documents?status=IN_APPROVAL", label: "В процессе", Icon: RefreshCw },
+      { href: "/documents?status=APPROVED", label: "Завершённые", Icon: CheckCircle },
+      { href: "/documents?status=REJECTED", label: "Отклонённые", Icon: XCircle },
+    ],
+  },
+  {
+    label: "Быстрые действия",
+    items: [
+      { href: "/documents/create", label: "Создать документ", Icon: Plus, createOnly: true },
+      { href: "/admin/workflows", label: "Шаблоны", Icon: Settings, adminOnly: true },
+    ],
+  },
+];
+
+export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+  const pathname = usePathname();
+  const { data: session } = useSession();
+  const role = session?.user?.role || "";
+  const isAdmin = role === "ADMIN";
+  const canCreate = role === "INITIATOR" || role === "VALIDATOR" || role === "ADMIN";
+
+  const isActive = (href: string) => {
+    if (href.includes("?")) {
+      const [base] = href.split("?");
+      return pathname === base;
+    }
+    return pathname === href || pathname.startsWith(href + "/");
+  };
+
+  const filteredSections = sidebarSections.map((section) => ({
+    ...section,
+    items: section.items.filter((item) => {
+      if (item.adminOnly && !isAdmin) return false;
+      if (item.createOnly && !canCreate) return false;
+      return true;
+    }),
+  })).filter((s) => s.items.length > 0);
+
+  return (
+    <>
+      {!collapsed && <div className="sidebar-overlay" onClick={onToggle} />}
+      <aside className={`sidebar ${collapsed ? "sidebar-collapsed" : ""}`}>
+        {filteredSections.map((section) => (
+          <div key={section.label}>
+            <div className="sb-label">{collapsed ? "—" : section.label}</div>
+            {section.items.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`sb-item ${isActive(item.href) ? "on" : ""}`}
+                title={collapsed ? item.label : undefined}
+              >
+                <item.Icon size={18} className="sb-icon" />
+                {!collapsed && <span className="sb-text">{item.label}</span>}
+              </Link>
+            ))}
+          </div>
+        ))}
+
+        {isAdmin && !collapsed && (
+          <>
+            <div className="sb-label">Администрирование</div>
+            <Link href="/admin/employees" className={`sb-item ${isActive("/admin/employees") ? "on" : ""}`}>
+              <Users size={18} className="sb-icon" />
+              <span className="sb-text">Сотрудники</span>
+            </Link>
+            <Link href="/admin/audit" className={`sb-item ${isActive("/admin/audit") ? "on" : ""}`}>
+              <ClipboardList size={18} className="sb-icon" />
+              <span className="sb-text">Аудит</span>
+            </Link>
+          </>
+        )}
+
+        {isAdmin && collapsed && (
+          <>
+            <Link href="/admin/employees" className={`sb-item ${isActive("/admin/employees") ? "on" : ""}`} title="Сотрудники">
+              <Users size={18} className="sb-icon" />
+            </Link>
+            <Link href="/admin/audit" className={`sb-item ${isActive("/admin/audit") ? "on" : ""}`} title="Аудит">
+              <ClipboardList size={18} className="sb-icon" />
+            </Link>
+          </>
+        )}
+      </aside>
+    </>
   );
 }

@@ -1,52 +1,32 @@
-import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import type { Role } from "@prisma/client";
+import { NextResponse } from "next/server";
 
-const roleBasedRoutes: Record<string, Role[]> = {
-  "/applicant": ["APPLICANT"],
-  "/applicant/": ["APPLICANT"],
-  "/documents": ["APPLICANT"],
-  "/documents/": ["APPLICANT"],
-  "/moderator": ["MODERATOR", "ADMIN"],
-  "/moderator/": ["MODERATOR", "ADMIN"],
-  "/moderator/audit-log": ["ADMIN"],
-  "/moderator/audit-log/": ["ADMIN"],
-  "/internal-docs": ["MODERATOR", "ADMIN"],
-  "/internal-docs/": ["MODERATOR", "ADMIN"],
+const roleBasedRoutes: Record<string, string[]> = {
+  "/documents/create": ["INITIATOR", "VALIDATOR", "ADMIN"],
+  "/documents/pending": ["VALIDATOR", "SIGNER", "REGISTRAR", "ADMIN"],
+  "/documents/approval": ["VALIDATOR", "SIGNER"],
+  "/incoming/register": ["REGISTRAR", "ADMIN"],
+  "/incoming": ["REGISTRAR", "ADMIN", "SIGNER", "VALIDATOR"],
+  "/admin": ["ADMIN"],
 };
 
-const publicRoutes = ["/login", "/register", "/", "/api/auth", "/offline"];
+const protectedRoutes = Object.keys(roleBasedRoutes);
 
 export default auth((req) => {
-  const { auth: session, nextUrl } = req;
-  const pathname = nextUrl.pathname;
-  const isLoggedIn = !!session?.user;
-  const userRole = session?.user?.role;
+  const path = req.nextUrl.pathname;
+  const user = req.auth?.user;
 
-  const isPublicRoute = publicRoutes.some((route) => pathname === route || pathname.startsWith(route + "/"));
-
-  if (isPublicRoute) {
-    return NextResponse.next();
+  if (!user && path !== "/login" && path !== "/") {
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  if (!isLoggedIn) {
-    return NextResponse.redirect(new URL("/login", nextUrl));
-  }
-
-  if (!userRole) {
-    return NextResponse.redirect(new URL("/login", nextUrl));
-  }
-
-  for (const [route, allowedRoles] of Object.entries(roleBasedRoutes)) {
-    if (pathname.startsWith(route)) {
-      if (!allowedRoles.includes(userRole)) {
-        const redirectUrl =
-          userRole === "APPLICANT"
-            ? "/applicant"
-            : "/moderator";
-        return NextResponse.redirect(new URL(redirectUrl, nextUrl));
+  if (user) {
+    const matchedRoute = protectedRoutes.find((route) => path.startsWith(route));
+    if (matchedRoute) {
+      const allowedRoles = roleBasedRoutes[matchedRoute];
+      if (!allowedRoles.includes(user.role as string)) {
+        return NextResponse.redirect(new URL("/", req.url));
       }
-      return NextResponse.next();
     }
   }
 
@@ -54,5 +34,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|images|icon|favicon|manifest).*)"],
 };
