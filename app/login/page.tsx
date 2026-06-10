@@ -6,12 +6,10 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, Mail, Lock, LogIn } from "lucide-react";
-import Link from "next/link";
-import { checkRateLimit, resetRateLimit } from "@/actions/rate-limit";
+import { Mail, Lock, LogIn, Shield, FileText, GraduationCap } from "lucide-react";
 
 const loginSchema = z.object({
-  login: z.string().min(1, "Введите email или телефон"),
+  email: z.string().email("Введите корректный email"),
   password: z.string().min(1, "Введите пароль"),
 });
 
@@ -33,12 +31,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (session?.user) {
-      const role = session.user.role;
-      if (role === "APPLICANT") {
-        router.push("/applicant");
-      } else if (role === "MODERATOR" || role === "ADMIN") {
-        router.push("/moderator");
-      }
+      router.push("/dashboard");
     }
   }, [session, router]);
 
@@ -46,98 +39,113 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(null);
 
-    const rateCheck = await checkRateLimit(`login:${data.login}`);
-    
-    if (!rateCheck.allowed) {
-      setError("Слишком много попыток. Попробуйте позже.");
-      setIsLoading(false);
-      return;
-    }
-
     const result = await signIn("credentials", {
-      login: data.login,
+      email: data.email,
       password: data.password,
       redirect: false,
     });
 
     if (result?.error) {
-      setError("Неверный логин или пароль");
+      setError("Неверный email или пароль");
       setIsLoading(false);
       return;
     }
 
-    await resetRateLimit(`login:${data.login}`);
+    router.push("/dashboard");
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] px-4 py-8">
-      <div className="max-w-md w-full space-y-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 text-center">
-          Вход в систему
-        </h1>
+    <div className="login-page">
+      <div className="login-header">
+        <div className="login-logo">
+          <img src="/images/college-logo.svg" alt="ЖАК" />
+        </div>
+        <h1>СЭД ЖАК ЖАГУ</h1>
+        <p>Система электронного документооборота Жалал-Абадского колледжа</p>
+      </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+      <div className="login-body">
+        <div className="login-card">
+          <div className="login-card-header">
+            <h2>Вход в систему</h2>
+            <p>Войдите с помощью учётной записи сотрудника</p>
+          </div>
+
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+            <div className="login-error">
               {error}
             </div>
           )}
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Email или телефон</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                {...register("login")}
-                type="text"
-                placeholder="example@mail.ru или +996500000000"
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px]"
-              />
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="login-field">
+              <label>Email</label>
+              <div className="login-input-wrap">
+                <Mail size={18} className="login-input-icon" />
+                <input
+                  {...register("email")}
+                  type="email"
+                  placeholder="admin@jak.kg"
+                  className="login-input"
+                />
+              </div>
+              {errors.email && <p className="login-field-error">{errors.email.message}</p>}
             </div>
-            {errors.login && (
-              <p className="text-red-500 text-sm">{errors.login.message}</p>
-            )}
-          </div>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Пароль</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                {...register("password")}
-                type="password"
-                placeholder="Введите пароль"
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px]"
-              />
+            <div className="login-field">
+              <label>Пароль</label>
+              <div className="login-input-wrap">
+                <Lock size={18} className="login-input-icon" />
+                <input
+                  {...register("password")}
+                  type="password"
+                  placeholder="Введите пароль"
+                  className="login-input"
+                />
+              </div>
+              {errors.password && <p className="login-field-error">{errors.password.message}</p>}
             </div>
-            {errors.password && (
-              <p className="text-red-500 text-sm">{errors.password.message}</p>
-            )}
+
+            <button type="submit" disabled={isLoading} className="login-btn">
+              {isLoading ? (
+                "Вход..."
+              ) : (
+                <>
+                  <LogIn size={18} />
+                  Войти
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="login-features">
+            <div className="login-feature">
+              <FileText size={16} />
+              <span>Электронные документы</span>
+            </div>
+            <div className="login-feature">
+              <Shield size={16} />
+              <span>ЭЦП подпись</span>
+            </div>
+            <div className="login-feature">
+              <GraduationCap size={16} />
+              <span>СЭД колледжа</span>
+            </div>
           </div>
+        </div>
+      </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? (
-              <span>Вход...</span>
-            ) : (
-              <>
-                <LogIn className="w-5 h-5" />
-                Войти
-              </>
-            )}
-          </button>
-        </form>
-
-        <Link
-          href="/"
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors min-h-[44px]"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          На главную
-        </Link>
+      <div className="login-footer">
+        <div className="login-footer-content">
+          <div className="login-footer-left">
+            <img src="/images/college-logo.svg" alt="ЖАК" className="login-footer-logo" />
+            <div>
+              <p className="login-footer-name">ЖАК ЖАГУ</p>
+              <p className="login-footer-sub">Жалал-Абадский колледж</p>
+            </div>
+          </div>
+          <p className="login-footer-copy">© {new Date().getFullYear()} ЖАК ЖАГУ. Все права защищены.</p>
+        </div>
       </div>
     </div>
   );

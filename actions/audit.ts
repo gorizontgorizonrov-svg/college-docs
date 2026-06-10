@@ -2,70 +2,56 @@
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { headers } from "next/headers";
 import type { AuditAction } from "@prisma/client";
 
 export async function createAuditLog(data: {
-  moderatorId: string;
   action: AuditAction;
   entityType: string;
   entityId: string;
   oldStatus?: string;
   newStatus?: string;
   comment?: string;
-  ipAddress?: string;
-  userAgent?: string;
+  signatureId?: string;
 }) {
   const session = await auth();
-  if (!session?.user) {
-    throw new Error("Не авторизован");
-  }
+  if (!session?.user) return;
 
-  return prisma.auditLog.create({
+  const headersList = await headers();
+
+  await prisma.auditLog.create({
     data: {
-      moderatorId: data.moderatorId,
+      userId: session.user.id,
       action: data.action,
       entityType: data.entityType,
       entityId: data.entityId,
       oldStatus: data.oldStatus,
       newStatus: data.newStatus,
       comment: data.comment,
-      ipAddress: data.ipAddress,
-      userAgent: data.userAgent,
+      signatureId: data.signatureId,
+      ipAddress: headersList.get("x-forwarded-for") || headersList.get("x-real-ip"),
+      userAgent: headersList.get("user-agent"),
     },
   });
 }
 
 export async function getAuditLogs(filters?: {
-  moderatorId?: string;
+  userId?: string;
   action?: AuditAction;
   entityType?: string;
-  dateFrom?: Date;
-  dateTo?: Date;
+  limit?: number;
 }) {
-  const where: any = {};
+  const session = await auth();
+  if (!session?.user) throw new Error("Не авторизован");
 
-  if (filters?.moderatorId) {
-    where.moderatorId = filters.moderatorId;
-  }
-  if (filters?.action) {
-    where.action = filters.action;
-  }
-  if (filters?.entityType) {
-    where.entityType = filters.entityType;
-  }
-  if (filters?.dateFrom || filters?.dateTo) {
-    where.createdAt = {};
-    if (filters?.dateFrom) {
-      where.createdAt.gte = filters.dateFrom;
-    }
-    if (filters?.dateTo) {
-      where.createdAt.lte = filters.dateTo;
-    }
-  }
-
-  return prisma.auditLog.findMany({
-    where,
+  return (prisma.auditLog.findMany as any)({
+    where: {
+      ...(filters?.userId ? { userId: filters.userId } : {}),
+      ...(filters?.action ? { action: filters.action } : {}),
+      ...(filters?.entityType ? { entityType: filters.entityType } : {}),
+    },
+    include: { user: { include: { employee: true } } },
     orderBy: { createdAt: "desc" },
-    take: 500,
+    take: filters?.limit || 100,
   });
 }
