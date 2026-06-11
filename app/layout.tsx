@@ -1,28 +1,44 @@
-import type { Metadata, Viewport } from "next";
+import type { Viewport } from "next";
 import { SessionProvider } from "next-auth/react";
 import "./globals.css";
 import { OfflineNotice } from "@/components/OfflineNotice";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { LayoutShell } from "@/components/LayoutShell";
+import { I18nProvider } from "@/lib/i18n/client";
+import { getLocale } from "@/lib/i18n/server";
+import { getDict } from "@/lib/i18n/getDict";
+import type { Locale } from "@/lib/i18n/config";
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
 };
 
-export const metadata: Metadata = {
-  title: "СЭД ЖАК ЖАГУ — Электронный документооборот",
-  description: "Автоматизация документооборота Жалал-Абадского колледжа",
-  manifest: "/manifest.json",
-};
+export async function generateMetadata() {
+  const locale = await getLocale();
+  const labels: Record<Locale, string> = {
+    ru: "СЭД ЖАК ЖАГУ — Электронный документооборот",
+    ky: "ЭДС ЖАК ЖАМУ — Электрондук документ жүгүртүү",
+    en: "DMS JAC JAGU — Electronic Document Management",
+    zh: "文件管理系统 JAC JAGU — 电子文件管理",
+  };
+  return {
+    title: labels[locale] || labels.ru,
+    description: "Автоматизация документооборота Жалал-Абадского колледжа",
+    manifest: "/manifest.json",
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const dict = await getDict(locale);
+
   return (
-    <html lang="ru" className="h-full antialiased" suppressHydrationWarning>
+    <html lang={locale} className="h-full antialiased" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -34,6 +50,8 @@ export default function RootLayout({
                     theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
                   }
                   document.documentElement.setAttribute('data-theme', theme);
+                  var locale = document.cookie.replace(/(?:(?:^|.*;\\s*)NEXT_LOCALE\\s*\\=\\s*([^;]*).*$)|^.*$/, "$1");
+                  if (locale) document.documentElement.lang = locale;
                 } catch(e) {}
               })();
             `,
@@ -45,8 +63,10 @@ export default function RootLayout({
       <body className="min-h-full">
         <SessionProvider>
           <ThemeProvider>
-            <OfflineNotice />
-            <LayoutShell>{children}</LayoutShell>
+            <I18nProvider initialLocale={locale} initialDict={dict}>
+              <OfflineNotice />
+              <LayoutShell>{children}</LayoutShell>
+            </I18nProvider>
           </ThemeProvider>
         </SessionProvider>
       </body>
