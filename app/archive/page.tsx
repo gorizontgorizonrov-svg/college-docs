@@ -54,16 +54,25 @@ export default async function ArchivePage({
     ];
   }
 
-  const [documents, total] = await Promise.all([
-    prisma.internalDocument.findMany({
+  let documents: any[] = [];
+  try {
+    const result = await prisma.internalDocument.findMany({
       where,
       include: { author: { include: { employee: true } } },
       orderBy: { createdAt: "desc" },
       skip: offset,
       take: PAGE_SIZE,
-    }),
-    prisma.internalDocument.count({ where }),
-  ]);
+    });
+    documents = result;
+  } catch {
+    documents = await prisma.internalDocument.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: offset,
+      take: PAGE_SIZE,
+    });
+  }
+  const total = await prisma.internalDocument.count({ where });
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
@@ -129,7 +138,7 @@ export default async function ArchivePage({
                     <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">{typeLabels[doc.type] || doc.type}</td>
                     <td className="px-4 py-3 font-medium text-[var(--accent)]">{doc.title}</td>
                     <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
-                      {doc.author.employee ? `${doc.author.employee.lastName} ${doc.author.employee.firstName}` : "—"}
+                      {doc.author?.employee ? `${doc.author.employee.lastName} ${doc.author.employee.firstName}` : "—"}
                     </td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-1 text-xs rounded-full ${statusColors[doc.status] || "badge-neutral"}`}>

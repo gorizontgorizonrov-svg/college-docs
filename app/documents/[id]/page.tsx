@@ -172,7 +172,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
           <div className="st-lbl">Создан</div>
           <div className="st-val">{new Date(doc.createdAt).toLocaleDateString("ru-RU", { day: "2-digit", month: "short" })}</div>
           <div className="st-sub">
-            {doc.author.employee ? `${doc.author.employee.lastName} ${doc.author.employee.firstName?.charAt(0)}.` : doc.author.email?.split("@")[0]}
+            {doc.author?.employee ? `${doc.author.employee.lastName} ${doc.author.employee.firstName?.charAt(0)}.` : doc.author?.email?.split("@")[0] || "—"}
           </div>
         </div>
       </div>
@@ -187,14 +187,14 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
             <div className="mf">
               <label>Автор</label>
               <span>
-                {doc.author.employee
+                {doc.author?.employee
                   ? `${doc.author.employee.lastName} ${doc.author.employee.firstName}`
-                  : doc.author.email}
+                  : doc.author?.email || "—"}
               </span>
             </div>
             <div className="mf">
               <label>Должность</label>
-              <span>{doc.author.employee?.position?.name || "—"}</span>
+              <span>{doc.author?.employee?.position?.name || "—"}</span>
             </div>
             <div className="mf">
               <label>Дата создания</label>

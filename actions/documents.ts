@@ -91,23 +91,36 @@ export async function getDocumentById(id: string) {
   const session = await auth();
   if (!session?.user) throw new Error("Не авторизован");
 
-  return prisma.internalDocument.findUnique({
-    where: { id },
-    include: {
-      author: { include: { employee: { include: { position: true, department: true } } } },
-      approvals: {
-        include: {
-          approver: { include: { employee: { include: { position: true } } } },
-          stage: true,
-          signature: { include: { employee: true } },
-        },
-        orderBy: { createdAt: "asc" },
+  const baseInclude = {
+    approvals: {
+      include: {
+        approver: { include: { employee: { include: { position: true } } } },
+        stage: true,
+        signature: { include: { employee: true } },
       },
-      versions: { orderBy: { version: "desc" } },
-      signatures: { include: { employee: true } },
-      workflow: { include: { stages: { orderBy: { stageOrder: "asc" } } } },
+      orderBy: { createdAt: "asc" },
     },
-  });
+    versions: { orderBy: { version: "desc" } },
+    signatures: { include: { employee: true } },
+    workflow: { include: { stages: { orderBy: { stageOrder: "asc" } } } },
+  } as const;
+
+  try {
+    return await prisma.internalDocument.findUnique({
+      where: { id },
+      include: {
+        ...baseInclude,
+        author: { include: { employee: { include: { position: true, department: true } } } },
+      },
+    });
+  } catch {
+    const doc = await prisma.internalDocument.findUnique({
+      where: { id },
+      include: baseInclude,
+    });
+    if (!doc) return null;
+    return { ...doc, author: null };
+  }
 }
 
 export async function getMyDocuments(
@@ -137,22 +150,37 @@ export async function getPendingApprovals(userId: string) {
   const session = await auth();
   if (!session?.user) throw new Error("Не авторизован");
 
-  return prisma.documentApproval.findMany({
-    where: {
-      approverId: userId,
-      decision: null,
-      document: { status: "IN_APPROVAL" },
-    },
-    include: {
-      document: {
-        include: {
-          author: { include: { employee: { include: { position: true } } } },
-        },
+  try {
+    return await prisma.documentApproval.findMany({
+      where: {
+        approverId: userId,
+        decision: null,
+        document: { status: "IN_APPROVAL" },
       },
-      stage: true,
-    },
-    orderBy: { createdAt: "asc" },
-  });
+      include: {
+        document: {
+          include: {
+            author: { include: { employee: { include: { position: true } } } },
+          },
+        },
+        stage: true,
+      },
+      orderBy: { createdAt: "asc" },
+    });
+  } catch {
+    return prisma.documentApproval.findMany({
+      where: {
+        approverId: userId,
+        decision: null,
+        document: { status: "IN_APPROVAL" },
+      },
+      include: {
+        document: true,
+        stage: true,
+      },
+      orderBy: { createdAt: "asc" },
+    });
+  }
 }
 
 export async function updateDocument(
@@ -255,15 +283,27 @@ export async function sendToWorkflow(id: string) {
   const session = await auth();
   if (!session?.user) throw new Error("Не авторизован");
 
-  const doc = await prisma.internalDocument.findUnique({
-    where: { id },
-    include: {
-      approvals: {
-        where: { stage: { stageOrder: 1 } },
-        include: { approver: true },
+  let doc = null;
+  try {
+    doc = await prisma.internalDocument.findUnique({
+      where: { id },
+      include: {
+        approvals: {
+          where: { stage: { stageOrder: 1 } },
+          include: { approver: true },
+        },
       },
-    },
-  });
+    });
+  } catch {
+    doc = await prisma.internalDocument.findUnique({
+      where: { id },
+      include: {
+        approvals: {
+          where: { stage: { stageOrder: 1 } },
+        },
+      },
+    });
+  }
   if (!doc) throw new Error("Документ не найден");
   if (doc.status !== "DRAFT") throw new Error("Документ уже отправлен");
 

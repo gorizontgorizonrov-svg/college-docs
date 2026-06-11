@@ -9,30 +9,46 @@ export async function getFileAttachments(documentId: string) {
   const session = await auth();
   if (!session?.user) throw new Error("Не авторизован");
 
-  return prisma.fileAttachment.findMany({
-    where: { documentId },
-    include: {
-      uploadedBy: {
-        include: { employee: { include: { position: true } } },
+  try {
+    return await prisma.fileAttachment.findMany({
+      where: { documentId },
+      include: {
+        uploadedBy: {
+          include: { employee: { include: { position: true } } },
+        },
       },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+    });
+  } catch {
+    const files = await prisma.fileAttachment.findMany({
+      where: { documentId },
+      orderBy: { createdAt: "desc" },
+    });
+    return files.map((f) => ({ ...f, uploadedBy: null }));
+  }
 }
 
 export async function getIncomingFileAttachments(incomingId: string) {
   const session = await auth();
   if (!session?.user) throw new Error("Не авторизован");
 
-  return prisma.fileAttachment.findMany({
-    where: { incomingId },
-    include: {
-      uploadedBy: {
-        include: { employee: { include: { position: true } } },
+  try {
+    return await prisma.fileAttachment.findMany({
+      where: { incomingId },
+      include: {
+        uploadedBy: {
+          include: { employee: { include: { position: true } } },
+        },
       },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+    });
+  } catch {
+    const files = await prisma.fileAttachment.findMany({
+      where: { incomingId },
+      orderBy: { createdAt: "desc" },
+    });
+    return files.map((f) => ({ ...f, uploadedBy: null }));
+  }
 }
 
 export async function attachFileToDocument(
