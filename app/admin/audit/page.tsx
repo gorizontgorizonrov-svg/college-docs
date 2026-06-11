@@ -1,7 +1,8 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import type { AuditAction } from "@prisma/client";
+
+
 const actionLabels: Record<string, string> = {
   CREATE: "Создание", EDIT: "Редактирование", DELETE: "Удаление",
   APPROVE: "Согласование", REJECT: "Отклонение", RETURN: "Возврат",
@@ -23,19 +24,20 @@ export default async function AuditPage({
   const limit = 50;
   const offset = (page - 1) * limit;
 
-  const logsWhere = {
-    action: params.action ? (params.action as AuditAction) : undefined,
-    userId: params.userId || undefined,
-  };
+  const logsFilter: Record<string, string> = {};
+  if (params.action) logsFilter.action = params.action;
+  if (params.userId) logsFilter.userId = params.userId;
 
-  const rawLogs = await prisma.auditLog.findMany({
-    where: logsWhere as AuditLogWhereInput,
+  const rawLogs: Array<Record<string, any>> = await (prisma as any).auditLog.findMany({
+    where: logsFilter,
     include: { user: { include: { employee: true } } },
     orderBy: { createdAt: "desc" },
     skip: offset,
     take: limit,
   });
-  const total = await prisma.auditLog.count({ where: logsWhere as AuditLogWhereInput });
+  const total: number = await (prisma as any).auditLog.count({
+    where: logsFilter,
+  });
 
   const users = await prisma.user.findMany({
     include: { employee: true },
