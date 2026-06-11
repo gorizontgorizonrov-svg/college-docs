@@ -14,22 +14,40 @@ export async function submitApproval(
   const session = await auth();
   if (!session?.user) throw new Error("Не авторизован");
 
-  const approval = await prisma.documentApproval.findUnique({
-    where: { id: approvalId },
-    include: {
-      document: {
-        include: {
-          workflow: {
-            include: { stages: { orderBy: { stageOrder: "asc" } } },
-          },
-          approvals: {
-            include: { approver: true },
+  let approval = null;
+  try {
+    approval = await prisma.documentApproval.findUnique({
+      where: { id: approvalId },
+      include: {
+        document: {
+          include: {
+            workflow: {
+              include: { stages: { orderBy: { stageOrder: "asc" } } },
+            },
+            approvals: {
+              include: { approver: true },
+            },
           },
         },
+        stage: true,
       },
-      stage: true,
-    },
-  });
+    });
+  } catch {
+    approval = await prisma.documentApproval.findUnique({
+      where: { id: approvalId },
+      include: {
+        document: {
+          include: {
+            workflow: {
+              include: { stages: { orderBy: { stageOrder: "asc" } } },
+            },
+            approvals: true,
+          },
+        },
+        stage: true,
+      },
+    });
+  }
   if (!approval) throw new Error("Запись согласования не найдена");
   if (approval.approverId !== session.user.id) throw new Error("Нет доступа");
 
