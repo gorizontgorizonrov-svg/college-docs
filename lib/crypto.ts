@@ -27,7 +27,7 @@ export function decrypt(encryptedText: string): string {
   const key = getKey();
   const [ivHex, authTagHex, encrypted] = encryptedText.split(":");
   
-  if (!ivHex || !authTagHex || !encrypted) {
+  if (ivHex === undefined || authTagHex === undefined || encrypted === undefined) {
     throw new Error("Invalid encrypted text format");
   }
   

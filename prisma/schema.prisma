@@ -72,6 +72,7 @@ enum AuditAction {
   ASSIGN_RESOLUTION
   EXPORT
   LOGIN
+  DOWNLOAD
 }
 
 // ============ MODELS ============
@@ -93,6 +94,7 @@ model User {
   createdVersions      DocumentVersion[]
   incomingResolutions  IncomingDocument[]   @relation("ResolutionAuthor")
   createdIncomingDocuments IncomingDocument[] @relation("IncomingCreator")
+  uploadedFiles        FileAttachment[]
 }
 
 model Position {
@@ -157,6 +159,7 @@ model InternalDocument {
   versions   DocumentVersion[]
   signatures DigitalSignature[]
   incomingResponseFor IncomingDocument[] @relation("IncomingResponse")
+  fileAttachments     FileAttachment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -280,6 +283,7 @@ model IncomingDocument {
   responseDocument InternalDocument? @relation("IncomingResponse", fields: [responseDocumentId], references: [id])
   createdById      String
   createdBy        User              @relation("IncomingCreator", fields: [createdById], references: [id])
+  fileAttachments  FileAttachment[]
 
   createdAt DateTime @default(now())
 
@@ -324,4 +328,35 @@ model AuditLog {
   @@index([userId])
   @@index([entityType, entityId])
   @@index([createdAt])
+}
+
+model FileAttachment {
+  id           String   @id @default(cuid())
+  documentId   String?
+  incomingId   String?
+  originalName String
+  storedName   String
+  mimeType     String
+  fileSize     Int
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  fileUrl      String   @unique
+  downloadCount Int     @default(0)
+  createdAt    DateTime @default(now())
+
+  internalDocument InternalDocument? @relation(fields: [documentId], references: [id])
+  incomingDocument IncomingDocument? @relation(fields: [incomingId], references: [id])
+
+  @@index([documentId])
+  @@index([incomingId])
+  @@index([uploadedById])
+}
+
+model DocumentSequence {
+  id   String @id
+  year Int
+  type InternalDocType
+  seq  Int    @default(0)
+
+  @@unique([year, type])
 }

@@ -33,83 +33,85 @@ export async function submitApproval(
   if (!approval) throw new Error("Запись согласования не найдена");
   if (approval.approverId !== session.user.id) throw new Error("Нет доступа");
 
-  await prisma.documentApproval.update({
-    where: { id: approvalId },
-    data: {
-      decision,
-      comment,
-      decidedAt: new Date(),
-    },
-  });
-
   const doc = approval.document;
 
-  if (decision === "APPROVE") {
-    const currentStageOrder = approval.stage?.stageOrder || 0;
-    const nextStage = doc.workflow?.stages.find((s) => s.stageOrder === currentStageOrder + 1);
+  await prisma.$transaction(async (tx) => {
+    await tx.documentApproval.update({
+      where: { id: approvalId },
+      data: {
+        decision,
+        comment,
+        decidedAt: new Date(),
+      },
+    });
 
-    if (nextStage) {
-      const nextApprovals = await prisma.documentApproval.findMany({
-        where: {
-          documentId: doc.id,
-          stage: { stageOrder: nextStage.stageOrder },
-        },
-        include: { approver: true },
-      });
-      for (const na of nextApprovals) {
-        await createNotification(
-          na.approverId,
-          "APPROVAL_REQUEST",
-          "Новый документ на согласование",
-          `Документ "${doc.title}" ожидает вашего согласования.`,
-          "InternalDocument",
-          doc.id
-        );
+    if (decision === "APPROVE") {
+      const currentStageOrder = approval.stage?.stageOrder || 0;
+      const nextStage = doc.workflow?.stages.find((s) => s.stageOrder === currentStageOrder + 1);
+
+      if (nextStage) {
+        const nextApprovals = await tx.documentApproval.findMany({
+          where: {
+            documentId: doc.id,
+            stage: { stageOrder: nextStage.stageOrder },
+          },
+          include: { approver: true },
+        });
+        for (const na of nextApprovals) {
+          await createNotification(
+            na.approverId,
+            "APPROVAL_REQUEST",
+            "Новый документ на согласование",
+            `Документ "${doc.title}" ожидает вашего согласования.`,
+            "InternalDocument",
+            doc.id
+          );
+        }
+      } else {
+        await tx.internalDocument.update({
+          where: { id: doc.id },
+          data: { status: "APPROVED" },
+        });
       }
-    } else {
-      await prisma.internalDocument.update({
+    } else if (decision === "REJECT") {
+      await tx.internalDocument.update({
         where: { id: doc.id },
-        data: { status: "APPROVED" },
+        data: { status: "REJECTED" },
       });
+
+      await createNotification(
+        doc.authorId,
+        "DOCUMENT_REJECTED",
+        "Документ отклонён",
+        `Ваш документ "${doc.title}" был отклонён.${comment ? ` Причина: ${comment}` : ""}`,
+        "InternalDocument",
+        doc.id
+      );
+    } else if (decision === "RETURN_TO_AUTHOR") {
+      await tx.internalDocument.update({
+        where: { id: doc.id },
+        data: { status: "DRAFT" },
+      });
+
+      await createNotification(
+        doc.authorId,
+        "DOCUMENT_RETURNED",
+        "Документ возвращён на доработку",
+        `Ваш документ "${doc.title}" возвращён на доработку.${comment ? ` Причина: ${comment}` : ""}`,
+        "InternalDocument",
+        doc.id
+      );
     }
-  } else if (decision === "REJECT") {
-    await prisma.internalDocument.update({
-      where: { id: doc.id },
-      data: { status: "REJECTED" },
+
+    await tx.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: decision === "APPROVE" ? "APPROVE" : decision === "REJECT" ? "REJECT" : "RETURN",
+        entityType: "DocumentApproval",
+        entityId: approvalId,
+        comment,
+      },
     });
-
-    await createNotification(
-      doc.authorId,
-      "DOCUMENT_REJECTED",
-      "Документ отклонён",
-      `Ваш документ "${doc.title}" был отклонён.${comment ? ` Причина: ${comment}` : ""}`,
-      "InternalDocument",
-      doc.id
-    );
-  } else if (decision === "RETURN_TO_AUTHOR") {
-    await prisma.internalDocument.update({
-      where: { id: doc.id },
-      data: { status: "DRAFT" },
-    });
-
-    await createNotification(
-      doc.authorId,
-      "DOCUMENT_RETURNED",
-      "Документ возвращён на доработку",
-      `Ваш документ "${doc.title}" возвращён на доработку.${comment ? ` Причина: ${comment}` : ""}`,
-      "InternalDocument",
-      doc.id
-    );
-  }
-
-  await prisma.auditLog.create({
-    data: {
-      userId: session.user.id,
-      action: decision === "APPROVE" ? "APPROVE" : decision === "REJECT" ? "REJECT" : "RETURN",
-      entityType: "DocumentApproval",
-      entityId: approvalId,
-      comment,
-    },
   });
 
   revalidatePath(`/documents/${doc.id}`);
@@ -132,41 +134,45 @@ export async function submitSignature(approvalId: string) {
   const docHash = await computeDocumentHash(approval.document.content || "");
   const encryptedSig = await signHash(docHash);
 
-  const signature = await prisma.digitalSignature.create({
-    data: {
-      documentId: approval.document.id,
-      employeeId: employee.id,
-      userId: session.user.id,
-      signatureData: encryptedSig,
-      documentHash: docHash,
-      isVerified: true,
-    },
-  });
-
-  await prisma.documentApproval.update({
-    where: { id: approvalId },
-    data: { signatureId: signature.id, decidedAt: new Date(), decision: "APPROVE" },
-  });
-
-  const allApprovals = await prisma.documentApproval.findMany({
-    where: { documentId: approval.document.id },
-  });
-
-  const allDecided = allApprovals.every((a) => a.decision !== null);
-  if (allDecided) {
-    await prisma.internalDocument.update({
-      where: { id: approval.document.id },
-      data: { status: "APPROVED" },
+  const signature = await prisma.$transaction(async (tx) => {
+    const sig = await tx.digitalSignature.create({
+      data: {
+        documentId: approval.document.id,
+        employeeId: employee.id,
+        userId: session.user.id,
+        signatureData: encryptedSig,
+        documentHash: docHash,
+        isVerified: true,
+      },
     });
-  }
 
-  await prisma.auditLog.create({
-    data: {
-      userId: session.user.id,
-      action: "SIGN",
-      entityType: "DigitalSignature",
-      entityId: signature.id,
-    },
+    await tx.documentApproval.update({
+      where: { id: approvalId },
+      data: { signatureId: sig.id, decidedAt: new Date(), decision: "APPROVE" },
+    });
+
+    const allApprovals = await tx.documentApproval.findMany({
+      where: { documentId: approval.document.id },
+    });
+
+    const allDecided = allApprovals.every((a) => a.decision !== null);
+    if (allDecided) {
+      await tx.internalDocument.update({
+        where: { id: approval.document.id },
+        data: { status: "APPROVED" },
+      });
+    }
+
+    await tx.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: "SIGN",
+        entityType: "DigitalSignature",
+        entityId: sig.id,
+      },
+    });
+
+    return sig;
   });
 
   revalidatePath(`/documents/${approval.document.id}`);

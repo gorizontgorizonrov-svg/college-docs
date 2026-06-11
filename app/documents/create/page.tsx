@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createDocument } from "@/actions/documents";
+import type { InternalDocType } from "@prisma/client";
 import { ArrowLeft, Save, Send, Upload } from "lucide-react";
 import Link from "next/link";
 
@@ -46,25 +47,35 @@ export default function CreateDocumentPage() {
 
     try {
       let fileUrl: string | undefined;
+      let fileInfo: { originalName: string; storedName: string; mimeType: string; fileSize: number } | undefined;
 
       if (file) {
         const formData = new FormData();
         formData.append("file", file);
         const res = await fetch("/api/upload", { method: "POST", body: formData });
         const json = await res.json();
-        if (json.success) fileUrl = json.url;
+        if (json.success) {
+          fileUrl = json.url;
+          fileInfo = {
+            originalName: json.fileName,
+            storedName: json.storedName,
+            mimeType: json.mimeType,
+            fileSize: json.fileSize,
+          };
+        }
       }
 
       const doc = await createDocument({
         title: data.title,
         content: data.content,
-        type: data.type as any,
+        type: data.type as InternalDocType,
         fileUrl,
+        fileInfo,
       });
 
       setCreatedDocId(doc.id);
-    } catch (err: any) {
-      setError(err.message || "Ошибка при создании документа");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Ошибка при создании документа");
     } finally {
       setIsSubmitting(false);
     }

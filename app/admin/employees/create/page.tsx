@@ -55,8 +55,8 @@ export default function CreateEmployeePage() {
       if (!res.ok) throw new Error(data.error || "Ошибка");
       router.push("/admin/employees");
       router.refresh();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Ошибка");
     } finally {
       setIsSubmitting(false);
     }

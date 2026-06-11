@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { registerIncoming } from "@/actions/incoming";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Upload } from "lucide-react";
 import Link from "next/link";
 
 const schema = z.object({
@@ -25,6 +25,7 @@ export default function RegisterIncomingPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -35,10 +36,29 @@ export default function RegisterIncomingPage() {
     setIsSubmitting(true);
     setError(null);
     try {
-      await registerIncoming(data);
+      let fileUrl: string | undefined;
+      let fileInfo: { originalName: string; storedName: string; mimeType: string; fileSize: number } | undefined;
+
+      if (file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        const json = await res.json();
+        if (json.success) {
+          fileUrl = json.url;
+          fileInfo = {
+            originalName: json.fileName,
+            storedName: json.storedName,
+            mimeType: json.mimeType,
+            fileSize: json.fileSize,
+          };
+        }
+      }
+
+      await registerIncoming({ ...data, fileUrl, fileInfo });
       router.push("/incoming");
-    } catch (err: any) {
-      setError(err.message || "Ошибка");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Ошибка");
     } finally {
       setIsSubmitting(false);
     }
@@ -92,6 +112,19 @@ export default function RegisterIncomingPage() {
           <div className="space-y-2">
             <label className="text-sm font-medium text-[var(--text-secondary)]">Содержание</label>
             <textarea {...register("content")} className="input min-h-[120px] resize-y" />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-[var(--text-secondary)]">Прикреплённый файл</label>
+            <div className="border-2 border-dashed border-[var(--border-subtle)] rounded-xl p-6 text-center hover:border-[var(--accent)]/30 transition-colors">
+              <input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} className="hidden" id="file-upload" />
+              <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center gap-2">
+                <Upload className="w-8 h-8 text-[var(--text-muted)]" />
+                <span className="text-sm text-[var(--text-muted)]">
+                  {file ? file.name : "Нажмите для выбора файла"}
+                </span>
+              </label>
+            </div>
           </div>
 
           <button type="submit" disabled={isSubmitting} className="btn btn-navy">

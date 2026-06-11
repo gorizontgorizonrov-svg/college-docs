@@ -3,8 +3,10 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { getIncomingById, markExecuted, sendToArchive } from "@/actions/incoming";
+import { getIncomingFileAttachments } from "@/actions/files";
 import { ArrowLeft, FileText, User, Calendar, Clock, Building, CheckCircle, Archive, Eye, Download } from "lucide-react";
 import { ResolutionForm } from "./ResolutionForm";
+import FileDownload from "@/components/FileDownload";
 
 const statusLabels: Record<string, string> = {
   REGISTERED: "Зарегистрирован",
@@ -28,6 +30,7 @@ export default async function IncomingDetailPage({ params }: { params: Promise<{
   if (!session?.user) redirect("/login");
 
   const doc = await getIncomingById(id);
+  const fileAttachments = await getIncomingFileAttachments(id);
   if (!doc) {
     return (
       <div className="min-h-screen  flex items-center justify-center">
@@ -176,27 +179,39 @@ export default async function IncomingDetailPage({ params }: { params: Promise<{
           </div>
         )}
 
-        {doc.fileUrl && (
+        {(fileAttachments.length > 0 || doc.fileUrl) && (
           <div className="card p-5">
-            <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Прикреплённый файл</h2>
-            <div className="flex flex-wrap gap-3">
-              <a
-                href={doc.fileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn"
-              >
-                <Eye className="w-4 h-4" />
-                Просмотреть
-              </a>
-              <a
-                href={doc.fileUrl}
-                download
-                className="btn"
-              >
-                <Download className="w-4 h-4" />
-                Скачать
-              </a>
+            <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Прикреплённые файлы</h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {doc.fileUrl && (
+                <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card-bg)" }}>
+                  <FileText size={20} style={{ color: "var(--primary)", flexShrink: 0 }} />
+                  <div style={{ flex: 1, fontSize: 13, minWidth: 0 }}>
+                    <div style={{ fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {doc.fileUrl.split("/").pop()}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                    <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" title="Просмотреть" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 6, border: "1px solid var(--border)", color: "var(--text-secondary)", textDecoration: "none" }}>
+                      <Eye size={16} />
+                    </a>
+                    <a href={doc.fileUrl} download title="Скачать" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 6, border: "1px solid var(--border)", color: "var(--text-secondary)", textDecoration: "none" }}>
+                      <Download size={16} />
+                    </a>
+                  </div>
+                </div>
+              )}
+              {fileAttachments.map((file) => (
+                <FileDownload key={file.id} file={file} showPreview={true} />
+              ))}
+              {fileAttachments.length > 1 && (
+                <form action="/api/download-zip" method="POST" target="_blank">
+                  <input type="hidden" name="incomingId" value={id} />
+                  <button type="submit" style={{ cursor: "pointer", width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 8, border: "1px dashed var(--border)", background: "transparent", color: "var(--text-secondary)", fontSize: 13, fontFamily: "inherit" }}>
+                    <Download size={16} />Скачать все файлы ZIP
+                  </button>
+                </form>
+              )}
             </div>
           </div>
         )}

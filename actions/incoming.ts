@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "./notifications";
-import type { IncomingStatus } from "@prisma/client";
+import type { IncomingStatus, Prisma } from "@prisma/client";
 
 export async function registerIncoming(data: {
   incomingNumber: string;
@@ -15,31 +15,55 @@ export async function registerIncoming(data: {
   title: string;
   content?: string;
   fileUrl?: string;
+  fileInfo?: {
+    originalName: string;
+    storedName: string;
+    mimeType: string;
+    fileSize: number;
+  };
 }) {
   const session = await auth();
   if (!session?.user) throw new Error("Не авторизован");
 
-  const doc = await prisma.incomingDocument.create({
-    data: {
-      incomingNumber: data.incomingNumber,
-      incomingDate: new Date(data.incomingDate),
-      fromOrg: data.fromOrg,
-      outgoingNumber: data.outgoingNumber,
-      outgoingDate: data.outgoingDate ? new Date(data.outgoingDate) : null,
-      title: data.title,
-      content: data.content,
-      fileUrl: data.fileUrl,
-      createdById: session.user.id,
-    },
-  });
+  const doc = await prisma.$transaction(async (tx) => {
+    const d = await tx.incomingDocument.create({
+      data: {
+        incomingNumber: data.incomingNumber,
+        incomingDate: new Date(data.incomingDate),
+        fromOrg: data.fromOrg,
+        outgoingNumber: data.outgoingNumber,
+        outgoingDate: data.outgoingDate ? new Date(data.outgoingDate) : null,
+        title: data.title,
+        content: data.content,
+        fileUrl: data.fileUrl,
+        createdById: session.user.id,
+      },
+    });
 
-  await prisma.auditLog.create({
-    data: {
-      userId: session.user.id,
-      action: "REGISTER",
-      entityType: "IncomingDocument",
-      entityId: doc.id,
-    },
+    if (data.fileInfo && data.fileUrl) {
+      await tx.fileAttachment.create({
+        data: {
+          incomingId: d.id,
+          originalName: data.fileInfo.originalName,
+          storedName: data.fileInfo.storedName,
+          mimeType: data.fileInfo.mimeType,
+          fileSize: data.fileInfo.fileSize,
+          uploadedById: session.user.id,
+          fileUrl: data.fileUrl,
+        },
+      });
+    }
+
+    await tx.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: "REGISTER",
+        entityType: "IncomingDocument",
+        entityId: d.id,
+      },
+    });
+
+    return d;
   });
 
   revalidatePath("/incoming");
@@ -55,34 +79,36 @@ export async function setResolution(
   const session = await auth();
   if (!session?.user) throw new Error("Не авторизован");
 
-  const doc = await prisma.incomingDocument.update({
-    where: { id },
-    data: {
-      resolution: resolutionText,
-      resolutionAuthorId: session.user.id,
-      resolutionDate: new Date(),
+  await prisma.$transaction(async (tx) => {
+    const doc = await tx.incomingDocument.update({
+      where: { id },
+      data: {
+        resolution: resolutionText,
+        resolutionAuthorId: session.user.id,
+        resolutionDate: new Date(),
+        executorId,
+        deadline: new Date(deadline),
+        status: "UNDER_RESOLUTION",
+      },
+    });
+
+    await createNotification(
       executorId,
-      deadline: new Date(deadline),
-      status: "UNDER_RESOLUTION",
-    },
-  });
+      "RESOLUTION_ASSIGNED",
+      "Назначена резолюция",
+      `Вам назначена резолюция по входящему документу "${doc.title}". Срок: ${new Date(deadline).toLocaleDateString("ru-RU")}`,
+      "IncomingDocument",
+      id
+    );
 
-  await createNotification(
-    executorId,
-    "RESOLUTION_ASSIGNED",
-    "Назначена резолюция",
-    `Вам назначена резолюция по входящему документу "${doc.title}". Срок: ${new Date(deadline).toLocaleDateString("ru-RU")}`,
-    "IncomingDocument",
-    id
-  );
-
-  await prisma.auditLog.create({
-    data: {
-      userId: session.user.id,
-      action: "ASSIGN_RESOLUTION",
-      entityType: "IncomingDocument",
-      entityId: id,
-    },
+    await tx.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: "ASSIGN_RESOLUTION",
+        entityType: "IncomingDocument",
+        entityId: id,
+      },
+    });
   });
 
   revalidatePath("/incoming");
@@ -95,7 +121,7 @@ export async function getIncomingList(filters?: {
   const session = await auth();
   if (!session?.user) throw new Error("Не авторизован");
 
-  const where: any = {};
+  const where: Prisma.IncomingDocumentWhereInput = {};
   if (filters?.status) where.status = filters.status;
   if (filters?.search) {
     where.OR = [
@@ -134,18 +160,20 @@ export async function sendToArchive(id: string) {
   const session = await auth();
   if (!session?.user) throw new Error("Не авторизован");
 
-  await prisma.incomingDocument.update({
-    where: { id },
-    data: { status: "ARCHIVED" },
-  });
+  await prisma.$transaction(async (tx) => {
+    await tx.incomingDocument.update({
+      where: { id },
+      data: { status: "ARCHIVED" },
+    });
 
-  await prisma.auditLog.create({
-    data: {
-      userId: session.user.id,
-      action: "ARCHIVE",
-      entityType: "IncomingDocument",
-      entityId: id,
-    },
+    await tx.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: "ARCHIVE",
+        entityType: "IncomingDocument",
+        entityId: id,
+      },
+    });
   });
 
   revalidatePath("/incoming");
@@ -155,18 +183,22 @@ export async function markExecuted(id: string) {
   const session = await auth();
   if (!session?.user) throw new Error("Не авторизован");
 
-  const doc = await prisma.incomingDocument.update({
-    where: { id },
-    data: { status: "EXECUTED", executedAt: new Date() },
-  });
+  const doc = await prisma.$transaction(async (tx) => {
+    const d = await tx.incomingDocument.update({
+      where: { id },
+      data: { status: "EXECUTED", executedAt: new Date() },
+    });
 
-  await prisma.auditLog.create({
-    data: {
-      userId: session.user.id,
-      action: "ARCHIVE",
-      entityType: "IncomingDocument",
-      entityId: id,
-    },
+    await tx.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: "ARCHIVE",
+        entityType: "IncomingDocument",
+        entityId: id,
+      },
+    });
+
+    return d;
   });
 
   revalidatePath("/incoming");
