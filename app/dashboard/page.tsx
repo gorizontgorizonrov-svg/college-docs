@@ -45,7 +45,7 @@ export default async function DashboardPage() {
   const overdueApprovals = (role === "VALIDATOR" || role === "SIGNER" || role === "ADMIN")
     ? await prisma.documentApproval.findMany({
         where: { approverId: session.user.id, decision: null, document: { status: "IN_APPROVAL" } },
-        include: { document: { include: { author: { include: { employee: true } } } }, stage: true },
+        include: { document: true, stage: true },
         orderBy: { createdAt: "asc" },
       })
     : [];
@@ -62,7 +62,6 @@ export default async function DashboardPage() {
     where: role === "ADMIN" ? {} : { authorId: session.user.id },
     orderBy: { updatedAt: "desc" },
     take: 5,
-    include: { author: { include: { employee: true } } },
   });
 
   return (
@@ -242,9 +241,7 @@ export default async function DashboardPage() {
                           <div>
                             <p className="text-sm font-medium text-[var(--text-primary)]">{a.document.title}</p>
                             <p className="text-xs text-[var(--text-muted)]">
-                              {a.document.author.employee
-                                ? `${a.document.author.employee.lastName} ${a.document.author.employee.firstName}`
-                                : ""}
+                              {a.document.authorId === session.user.id ? "Вы" : ""}
                             </p>
                           </div>
                           <span className="text-xs text-[var(--danger)] font-medium shrink-0">Просрочено</span>
@@ -339,7 +336,7 @@ export default async function DashboardPage() {
                         <p className="text-sm font-medium text-[var(--text-primary)] truncate">{doc.title}</p>
                         <p className="text-xs text-[var(--text-muted)]">
                           {typeLabels[doc.type] || doc.type}
-                          {doc.author.employee ? ` · ${doc.author.employee.lastName} ${doc.author.employee.firstName}` : ""}
+                          {doc.authorId === session.user.id ? ` · Вы` : ""}
                         </p>
                       </div>
                       <span className={`px-2 py-0.5 text-xs rounded-full shrink-0 ml-2 ${
