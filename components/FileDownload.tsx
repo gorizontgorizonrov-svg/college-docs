@@ -38,7 +38,7 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} МБ`;
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string | Date): string {
   const d = new Date(dateStr);
   return d.toLocaleDateString("ru-RU", {
     day: "2-digit",

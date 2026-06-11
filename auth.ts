@@ -1,6 +1,5 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 
 declare module "next-auth" {
@@ -30,6 +29,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
+        const { prisma } = await import("@/lib/prisma");
         const user = await prisma.user.findUnique({
           where: { email: credentials.email as string },
         });
