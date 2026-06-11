@@ -141,6 +141,7 @@ export async function getMyDocuments(
       approvals: {
         include: { approver: { include: { employee: true } } },
       },
+      _count: { select: { fileAttachments: true } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -175,7 +176,11 @@ export async function getPendingApprovals(userId: string) {
         document: { status: "IN_APPROVAL" },
       },
       include: {
-        document: true,
+        document: {
+          include: {
+            author: { include: { employee: true } },
+          },
+        },
         stage: true,
       },
       orderBy: { createdAt: "asc" },
