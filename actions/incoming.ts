@@ -136,6 +136,7 @@ export async function getIncomingList(filters?: {
     include: {
       resolutionAuthor: { include: { employee: true } },
       executor: { include: { position: true } },
+      _count: { select: { fileAttachments: true } },
     },
     orderBy: { incomingDate: "desc" },
   });
