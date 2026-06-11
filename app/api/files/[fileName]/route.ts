@@ -29,11 +29,27 @@ export async function GET(
       where: { fileUrl: { equals: `/api/files/${fileName}` } },
     });
 
-    const isAuthor = internalDoc?.authorId === session.user.id;
-    const isAdminOrRegistrar = ["ADMIN", "REGISTRAR", "VALIDATOR", "SIGNER"].includes(session.user.role as string);
-    const isIncomingRelated = incomingDoc && ["REGISTRAR", "ADMIN"].includes(session.user.role as string);
+    const attachment = await prisma.fileAttachment.findFirst({
+      where: { fileUrl: { equals: `/api/files/${fileName}` } },
+    });
 
-    if (!isAuthor && !isAdminOrRegistrar && !isIncomingRelated) {
+    const docId = internalDoc?.id || attachment?.documentId;
+    const userId = session.user.id;
+    const role = session.user.role;
+
+    const isAuthor = internalDoc?.authorId === userId;
+    const isAdminOrRegistrar = ["ADMIN", "REGISTRAR", "VALIDATOR", "SIGNER"].includes(role);
+    const isIncomingRelated = incomingDoc && ["REGISTRAR", "ADMIN"].includes(role);
+
+    let isApprover = false;
+    if (docId && !isAuthor && !isAdminOrRegistrar) {
+      const approval = await prisma.documentApproval.findFirst({
+        where: { documentId: docId, approverId: userId },
+      });
+      isApprover = !!approval;
+    }
+
+    if (!isAuthor && !isAdminOrRegistrar && !isIncomingRelated && !isApprover) {
       return NextResponse.json({ error: "Нет доступа" }, { status: 403 });
     }
 

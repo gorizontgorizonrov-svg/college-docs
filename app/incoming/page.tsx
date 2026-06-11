@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getIncomingList } from "@/actions/incoming";
 import { Plus, AlertCircle, Eye, Download } from "lucide-react";
+import { ClickableRow } from "@/components/ClickableRow";
 
 const statusLabels: Record<string, string> = {
   REGISTERED: "Зарегистрирован",
@@ -76,18 +77,14 @@ export default async function IncomingPage() {
                     const { color: deadlineColor, isOverdue } = getDeadlineInfo(doc.deadline);
 
                     return (
-                      <tr key={doc.id}
+                      <ClickableRow key={doc.id} href={`/incoming/${doc.id}`}
                         className={`hover:bg-[var(--bg-secondary)] ${isOverdue ? "opacity-80 border-l-4 border-l-[var(--danger)]" : ""}`}>
                         <td className="px-4 py-3 text-sm text-[var(--text-muted)]">{doc.incomingNumber}</td>
                         <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
                           {new Date(doc.incomingDate).toLocaleDateString("ru-RU")}
                         </td>
                         <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">{doc.fromOrg}</td>
-                        <td className="px-4 py-3">
-                          <Link href={`/incoming/${doc.id}`} className="font-medium text-[var(--accent)] hover:text-[var(--accent-hover)]">
-                            {doc.title}
-                          </Link>
-                        </td>
+                        <td className="px-4 py-3 font-medium text-[var(--accent)]">{doc.title}</td>
                         <td className="px-4 py-3">
                           <span className={`px-2 py-1 text-xs rounded-full ${statusColors[doc.status] || "badge-neutral"}`}>
                             {statusLabels[doc.status] || doc.status}
@@ -113,7 +110,7 @@ export default async function IncomingPage() {
                             <span className="text-xs text-[var(--text-muted)]">—</span>
                           )}
                         </td>
-                      </tr>
+                      </ClickableRow>
                     );
                   })}
                 </tbody>
