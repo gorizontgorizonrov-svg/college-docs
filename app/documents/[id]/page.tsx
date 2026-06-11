@@ -2,9 +2,11 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getDocumentById, getPendingApprovals, sendToWorkflow } from "@/actions/documents";
+import { getFileAttachments } from "@/actions/files";
 import { ApprovalTimeline } from "@/components/ApprovalTimeline";
 import { SignatureStamp } from "@/components/SignatureStamp";
 import { ApprovalActions } from "./ApprovalActions";
+import FileDownload from "@/components/FileDownload";
 import {
   ChevronRight,
   Clock,
@@ -57,6 +59,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
 
   const pendingApprovals = await getPendingApprovals(session.user.id);
   const myPendingApproval = pendingApprovals.find((a) => a.documentId === id);
+  const fileAttachments = await getFileAttachments(id);
 
   const totalStages = doc.workflow?.stages?.length || 0;
   const decidedApprovals = doc.approvals.filter((a) => a.decision !== null);
@@ -215,18 +218,45 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
             </>
           )}
 
-          {doc.fileUrl && (
+          {(fileAttachments.length > 0 || doc.fileUrl) && (
             <>
               <div className="content-divider" />
               <div>
-                <div className="form-label">Прикреплённый файл</div>
-                <div className="act-row" style={{ marginTop: 6 }}>
-                  <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="file-link">
-                    <Eye size={16} />Просмотреть
-                  </a>
-                  <a href={doc.fileUrl} download className="file-link">
-                    <Download size={16} />Скачать
-                  </a>
+                <div className="form-label">Прикреплённые файлы</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
+                  {doc.fileUrl && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card-bg)" }}>
+                      <FileText size={20} style={{ color: "var(--primary)", flexShrink: 0 }} />
+                      <div style={{ flex: 1, fontSize: 13, minWidth: 0 }}>
+                        <div style={{ fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {doc.fileUrl.split("/").pop()}
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                        <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" title="Просмотреть" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 6, border: "1px solid var(--border)", color: "var(--text-secondary)", textDecoration: "none" }}>
+                          <Eye size={16} />
+                        </a>
+                        <a href={doc.fileUrl} download title="Скачать" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 6, border: "1px solid var(--border)", color: "var(--text-secondary)", textDecoration: "none" }}>
+                          <Download size={16} />
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                  {fileAttachments.map((file) => (
+                    <FileDownload
+                      key={file.id}
+                      file={file}
+                      showPreview={true}
+                    />
+                  ))}
+                  {fileAttachments.length > 1 && (
+                    <form action="/api/download-zip" method="POST" target="_blank">
+                      <input type="hidden" name="documentId" value={id} />
+                      <button type="submit" style={{ cursor: "pointer", width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 8, border: "1px dashed var(--border)", background: "transparent", color: "var(--text-secondary)", fontSize: 13, fontFamily: "inherit" }}>
+                        <Download size={16} />Скачать все файлы ZIP
+                      </button>
+                    </form>
+                  )}
                 </div>
               </div>
             </>

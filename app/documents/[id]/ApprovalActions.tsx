@@ -22,8 +22,8 @@ export function ApprovalActions({ approvalId, canSign }: ApprovalActionsProps) {
     try {
       await submitApproval(approvalId, decision, comment);
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || "Ошибка");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Ошибка");
     } finally {
       setIsLoading(false);
     }
@@ -35,8 +35,8 @@ export function ApprovalActions({ approvalId, canSign }: ApprovalActionsProps) {
     try {
       await submitSignature(approvalId);
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || "Ошибка");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Ошибка");
     } finally {
       setIsLoading(false);
     }

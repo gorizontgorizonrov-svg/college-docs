@@ -2,12 +2,12 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import type { AuditAction } from "@prisma/client";
-
 const actionLabels: Record<string, string> = {
   CREATE: "Создание", EDIT: "Редактирование", DELETE: "Удаление",
   APPROVE: "Согласование", REJECT: "Отклонение", RETURN: "Возврат",
   SIGN: "Подписание", REGISTER: "Регистрация", ARCHIVE: "Архивация",
   ASSIGN_RESOLUTION: "Резолюция", EXPORT: "Экспорт", LOGIN: "Вход",
+  DOWNLOAD: "Скачивание",
 };
 
 export default async function AuditPage({
@@ -23,26 +23,21 @@ export default async function AuditPage({
   const limit = 50;
   const offset = (page - 1) * limit;
 
-  const rawLogs = await (prisma.auditLog.findMany as any)({
-    where: {
-      ...(params.action ? { action: params.action as AuditAction } : {}),
-      ...(params.userId ? { userId: params.userId } : {}),
-    },
+  const logsWhere = {
+    action: params.action ? (params.action as AuditAction) : undefined,
+    userId: params.userId || undefined,
+  };
+
+  const rawLogs = await prisma.auditLog.findMany({
+    where: logsWhere as AuditLogWhereInput,
     include: { user: { include: { employee: true } } },
     orderBy: { createdAt: "desc" },
     skip: offset,
     take: limit,
   });
-
-  const total = await (prisma.auditLog.count as any)({
-    where: {
-      ...(params.action ? { action: params.action as AuditAction } : {}),
-      ...(params.userId ? { userId: params.userId } : {}),
-    },
-  });
+  const total = await prisma.auditLog.count({ where: logsWhere as AuditLogWhereInput });
 
   const users = await prisma.user.findMany({
-    where: { role: { not: undefined } },
     include: { employee: true },
     orderBy: { email: "asc" },
   });
@@ -85,7 +80,7 @@ export default async function AuditPage({
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border-subtle)]">
-                  {rawLogs.map((log: any) => (
+                  {rawLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-[var(--bg-secondary)]">
                     <td className="px-4 py-3 text-sm text-[var(--text-muted)] whitespace-nowrap">
                       {new Date(log.createdAt).toLocaleDateString("ru-RU", {

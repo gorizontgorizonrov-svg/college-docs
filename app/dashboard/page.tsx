@@ -367,7 +367,7 @@ export default async function DashboardPage() {
                       APPROVE: "Согласовал(а)", REJECT: "Отклонил(а)",
                       RETURN: "Вернул(а)", SIGN: "Подписал(а)",
                       REGISTER: "Зарегистрировал(а)", ARCHIVE: "Архивировал(а)",
-                      LOGIN: "Вошёл(ла)",
+                      LOGIN: "Вошёл(ла)", DOWNLOAD: "Скачал(а)",
                     };
                     const entityLabels: Record<string, string> = {
                       InternalDocument: "документ", IncomingDocument: "входящий",

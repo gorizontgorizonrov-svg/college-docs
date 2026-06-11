@@ -49,13 +49,22 @@ export default function EditDocumentPage() {
 
     try {
       let fileUrl: string | undefined;
+      let fileInfo: { originalName: string; storedName: string; mimeType: string; fileSize: number } | undefined;
 
       if (file) {
         const formData = new FormData();
         formData.append("file", file);
         const res = await fetch("/api/upload", { method: "POST", body: formData });
         const json = await res.json();
-        if (json.success) fileUrl = json.url;
+        if (json.success) {
+          fileUrl = json.url;
+          fileInfo = {
+            originalName: json.fileName,
+            storedName: json.storedName,
+            mimeType: json.mimeType,
+            fileSize: json.fileSize,
+          };
+        }
       }
 
       await updateDocument(params.id, {
@@ -63,12 +72,13 @@ export default function EditDocumentPage() {
         content: data.content,
         fileUrl,
         changeNote: data.changeNote,
+        fileInfo,
       });
 
       router.push(`/documents/${params.id}`);
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || "Ошибка при сохранении");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Ошибка при сохранении");
     } finally {
       setIsSubmitting(false);
     }

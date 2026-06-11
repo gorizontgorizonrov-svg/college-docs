@@ -35,8 +35,8 @@ export function EmployeeEditForm({ employee, positions, departments }: { employe
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Ошибка");
       router.refresh();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Ошибка");
     } finally {
       setIsSubmitting(false);
     }
