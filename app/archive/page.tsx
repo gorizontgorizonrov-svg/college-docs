@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Search, ChevronLeft, ChevronRight, Eye, Download } from "lucide-react";
+import { ClickableRow } from "@/components/ClickableRow";
 
 const statusLabels: Record<string, string> = {
   DRAFT: "Черновик",
@@ -123,12 +124,10 @@ export default async function ArchivePage({
               </thead>
               <tbody className="divide-y divide-[var(--border-subtle)]">
                 {documents.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-[var(--bg-secondary)]">
+                  <ClickableRow key={doc.id} href={`/documents/${doc.id}`} className="hover:bg-[var(--bg-secondary)]">
                     <td className="px-4 py-3 text-sm text-[var(--text-muted)]">{doc.number || "—"}</td>
                     <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">{typeLabels[doc.type] || doc.type}</td>
-                    <td className="px-4 py-3">
-                      <Link href={`/documents/${doc.id}`} className="font-medium text-[var(--accent)]">{doc.title}</Link>
-                    </td>
+                    <td className="px-4 py-3 font-medium text-[var(--accent)]">{doc.title}</td>
                     <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
                       {doc.author.employee ? `${doc.author.employee.lastName} ${doc.author.employee.firstName}` : "—"}
                     </td>
@@ -152,7 +151,7 @@ export default async function ArchivePage({
                         <span className="text-xs text-[var(--text-muted)]">—</span>
                       )}
                     </td>
-                  </tr>
+                  </ClickableRow>
                 ))}
               </tbody>
             </table>

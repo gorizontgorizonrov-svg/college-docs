@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getMyDocuments } from "@/actions/documents";
 import { Plus, FileText, Download, Eye } from "lucide-react";
+import { ClickableRow } from "@/components/ClickableRow";
 
 const statusLabels: Record<string, string> = {
   DRAFT: "Черновик",
@@ -71,14 +72,10 @@ export default async function DocumentsPage() {
                 </thead>
                 <tbody className="divide-y divide-[var(--border-subtle)]">
                   {documents.map((doc) => (
-                    <tr key={doc.id} className="hover:bg-[var(--bg-secondary)]">
+                    <ClickableRow key={doc.id} href={`/documents/${doc.id}`} className="hover:bg-[var(--bg-secondary)]">
                       <td className="px-4 py-3 text-sm text-[var(--text-muted)]">{doc.number || "—"}</td>
                       <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">{typeLabels[doc.type] || doc.type}</td>
-                      <td className="px-4 py-3">
-                        <Link href={`/documents/${doc.id}`} className="font-medium text-[var(--accent)] hover:text-[var(--accent-hover)]">
-                          {doc.title}
-                        </Link>
-                      </td>
+                      <td className="px-4 py-3 font-medium text-[var(--accent)]">{doc.title}</td>
                       <td className="px-4 py-3">
                         <span className={`px-2 py-1 text-xs rounded-full ${statusColors[doc.status] || "badge-neutral"}`}>
                           {statusLabels[doc.status] || doc.status}
@@ -101,7 +98,7 @@ export default async function DocumentsPage() {
                           <span className="text-xs text-[var(--text-muted)]">—</span>
                         )}
                       </td>
-                    </tr>
+                    </ClickableRow>
                   ))}
                 </tbody>
               </table>

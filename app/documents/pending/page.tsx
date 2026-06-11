@@ -1,8 +1,8 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getPendingApprovals } from "@/actions/documents";
-import Link from "next/link";
 import { Clock } from "lucide-react";
+import { ClickableRow } from "@/components/ClickableRow";
 
 const typeLabels: Record<string, string> = {
   ORDER: "Приказ", DIRECTIVE: "Распоряжение", PROTOCOL: "Протокол",
@@ -40,13 +40,9 @@ export default async function PendingPage() {
                 </thead>
                 <tbody className="divide-y divide-[var(--border-subtle)]">
                   {pending.map((a) => (
-                    <tr key={a.id} className="hover:bg-[var(--bg-secondary)]">
+                    <ClickableRow key={a.id} href={`/documents/${a.document.id}`} className="hover:bg-[var(--bg-secondary)]">
                       <td className="px-4 py-3 text-sm text-[var(--text-muted)]">{typeLabels[a.document.type] || a.document.type}</td>
-                      <td className="px-4 py-3">
-                        <Link href={`/documents/${a.document.id}`} className="font-medium text-[var(--accent)] hover:text-[var(--accent-hover)]">
-                          {a.document.title}
-                        </Link>
-                      </td>
+                      <td className="px-4 py-3 font-medium text-[var(--accent)]">{a.document.title}</td>
                       <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
                         {a.document.author.employee
                           ? `${a.document.author.employee.lastName} ${a.document.author.employee.firstName}`
@@ -60,7 +56,7 @@ export default async function PendingPage() {
                           Этап {a.stage?.stageOrder || "—"}
                         </span>
                       </td>
-                    </tr>
+                    </ClickableRow>
                   ))}
                 </tbody>
               </table>
