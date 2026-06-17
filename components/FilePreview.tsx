@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { X, Maximize2, Minimize2 } from "lucide-react";
+import { IconX, IconMaximize, IconMinimize, IconDownload, IconLoader2 } from "@tabler/icons-react";
 
 interface FilePreviewProps {
   fileUrl: string;
   fileName: string;
   mimeType: string;
+  fileId?: string;
   onClose?: () => void;
 }
 
@@ -14,149 +15,122 @@ export default function FilePreview({
   fileUrl,
   fileName,
   mimeType,
+  fileId,
   onClose,
 }: FilePreviewProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const toggleFullscreen = useCallback(() => {
     setIsFullscreen((v) => !v);
   }, []);
 
+  const handleDownload = useCallback(async () => {
+    if (!fileId) return;
+    setDownloading(true);
+    try {
+      const response = await fetch(`/api/download/${fileId}`);
+      if (!response.ok) throw new Error("Download failed");
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download error:", err);
+    } finally {
+      setDownloading(false);
+    }
+  }, [fileId, fileName]);
+
   const isImage = mimeType.startsWith("image/");
 
-  const overlayClass = isFullscreen
-    ? "preview-overlay preview-fullscreen"
-    : "preview-overlay";
-
   return (
-    <div className={overlayClass} onClick={onClose}>
+    <div
+      className="preview-overlay"
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1000,
+        background: "rgba(0, 0, 0, 0.7)",
+        backdropFilter: "blur(4px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 20,
+      }}
+    >
       <div
-        className="preview-container"
         onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "rgba(10, 12, 22, 0.6)",
+          backdropFilter: "blur(24px)",
+          border: "1px solid var(--glass-border)",
+          borderRadius: isFullscreen ? 0 : 16,
+          maxWidth: isFullscreen ? "100%" : "90vw",
+          maxHeight: isFullscreen ? "100%" : "90vh",
+          width: "100%",
+          height: isFullscreen ? "100%" : "80vh",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          boxShadow: "0 20px 60px rgba(0, 0, 0, 0.4)",
+        }}
       >
-        <div className="preview-header">
-          <span className="preview-filename" title={fileName}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderBottom: "1px solid var(--glass-border)" }}>
+          <span style={{ fontWeight: 500, fontSize: 14, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={fileName}>
             {fileName}
           </span>
-          <div className="preview-actions">
+          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+            {fileId && (
+              <button
+                onClick={handleDownload}
+                disabled={downloading}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 6, border: "none", background: "rgba(255,255,255,0.05)", color: "var(--text-secondary)", cursor: "pointer", transition: "background 0.15s" }}
+                title="Скачать"
+              >
+                {downloading ? <IconLoader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <IconDownload size={16} />}
+              </button>
+            )}
             <button
               onClick={toggleFullscreen}
-              className="preview-btn"
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 6, border: "none", background: "rgba(255,255,255,0.05)", color: "var(--text-secondary)", cursor: "pointer", transition: "background 0.15s" }}
               title={isFullscreen ? "Свернуть" : "На весь экран"}
             >
-              {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+              {isFullscreen ? <IconMinimize size={16} /> : <IconMaximize size={16} />}
             </button>
-            <button onClick={onClose} className="preview-btn" title="Закрыть">
-              <X size={16} />
+            <button
+              onClick={onClose}
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 6, border: "none", background: "rgba(255,255,255,0.05)", color: "var(--text-secondary)", cursor: "pointer", transition: "background 0.15s" }}
+              title="Закрыть"
+            >
+              <IconX size={16} />
             </button>
           </div>
         </div>
-        <div className="preview-body">
+        <div style={{ flex: 1, overflow: "auto", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.3)" }}>
           {isImage ? (
             <img
               src={fileUrl}
               alt={fileName}
-              className="preview-image"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-              }}
+              style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
           ) : (
             <iframe
               src={fileUrl}
-              className="preview-iframe"
+              style={{ width: "100%", height: "100%", border: "none" }}
               title={fileName}
               sandbox="allow-same-origin"
             />
           )}
         </div>
       </div>
-
-      <style jsx>{`
-        .preview-overlay {
-          position: fixed;
-          inset: 0;
-          z-index: 1000;
-          background: rgba(0, 0, 0, 0.6);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-        }
-        .preview-fullscreen .preview-container {
-          width: 100%;
-          height: 100%;
-          max-width: none;
-          max-height: none;
-          border-radius: 0;
-        }
-        .preview-container {
-          background: var(--card-bg, #fff);
-          border-radius: 12px;
-          max-width: 90vw;
-          max-height: 90vh;
-          width: 100%;
-          height: 80vh;
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-        .preview-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 12px 16px;
-          border-bottom: 1px solid var(--border, #e5e7eb);
-        }
-        .preview-filename {
-          font-weight: 500;
-          font-size: 14px;
-          color: var(--text, #111);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .preview-actions {
-          display: flex;
-          gap: 6px;
-          flex-shrink: 0;
-        }
-        .preview-btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 32px;
-          height: 32px;
-          border-radius: 6px;
-          border: none;
-          background: transparent;
-          color: var(--text-secondary, #6b7280);
-          cursor: pointer;
-          transition: background 0.15s;
-        }
-        .preview-btn:hover {
-          background: var(--hover-bg, #f3f4f6);
-        }
-        .preview-body {
-          flex: 1;
-          overflow: auto;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #f9fafb;
-        }
-        .preview-image {
-          max-width: 100%;
-          max-height: 100%;
-          object-fit: contain;
-        }
-        .preview-iframe {
-          width: 100%;
-          height: 100%;
-          border: none;
-        }
-      `}</style>
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Mail, Lock, LogIn, Shield, FileText, GraduationCap } from "lucide-react";
+import { IconMail, IconLock, IconLogin, IconShield, IconFileText, IconSchool } from "@tabler/icons-react";
 
 const loginSchema = z.object({
   email: z.string().email("Введите корректный email"),
@@ -58,14 +58,14 @@ export default function LoginPage() {
     <div className="login-page">
       <div className="login-header">
         <div className="login-logo">
-          <img src="/images/college-logo.svg" alt="ЖАК" />
+          <span>ЖАК</span>
         </div>
         <h1>СЭД ЖАК ЖАГУ</h1>
         <p>Система электронного документооборота Жалал-Абадского колледжа</p>
       </div>
 
-      <div className="login-body">
-        <div className="login-card">
+      <div className="login-body" style={{ animation: "fadeUp 0.6s ease forwards" }}>
+        <div className="login-card anim-fade-up">
           <div className="login-card-header">
             <h2>Вход в систему</h2>
             <p>Войдите с помощью учётной записи сотрудника</p>
@@ -78,10 +78,10 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="login-field">
+            <div className="login-field anim-stagger">
               <label>Email</label>
               <div className="login-input-wrap">
-                <Mail size={18} className="login-input-icon" />
+                <IconMail size={18} className="login-input-icon" />
                 <input
                   {...register("email")}
                   type="email"
@@ -95,7 +95,7 @@ export default function LoginPage() {
             <div className="login-field">
               <label>Пароль</label>
               <div className="login-input-wrap">
-                <Lock size={18} className="login-input-icon" />
+                <IconLock size={18} className="login-input-icon" />
                 <input
                   {...register("password")}
                   type="password"
@@ -111,7 +111,7 @@ export default function LoginPage() {
                 "Вход..."
               ) : (
                 <>
-                  <LogIn size={18} />
+                  <IconLogin size={18} />
                   Войти
                 </>
               )}
@@ -120,15 +120,15 @@ export default function LoginPage() {
 
           <div className="login-features">
             <div className="login-feature">
-              <FileText size={16} />
+              <IconFileText size={16} />
               <span>Электронные документы</span>
             </div>
             <div className="login-feature">
-              <Shield size={16} />
+              <IconShield size={16} />
               <span>ЭЦП подпись</span>
             </div>
             <div className="login-feature">
-              <GraduationCap size={16} />
+              <IconSchool size={16} />
               <span>СЭД колледжа</span>
             </div>
           </div>
@@ -138,7 +138,7 @@ export default function LoginPage() {
       <div className="login-footer">
         <div className="login-footer-content">
           <div className="login-footer-left">
-            <img src="/images/college-logo.svg" alt="ЖАК" className="login-footer-logo" />
+            <div className="login-footer-logo">ЖАК</div>
             <div>
               <p className="login-footer-name">ЖАК ЖАГУ</p>
               <p className="login-footer-sub">Жалал-Абадский колледж</p>

@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Search, ChevronLeft, ChevronRight, Eye, Download } from "lucide-react";
+import { IconSearch, IconChevronLeft, IconChevronRight, IconEye, IconDownload } from "@tabler/icons-react";
 import { ClickableRow } from "@/components/ClickableRow";
 
 const statusLabels: Record<string, string> = {
@@ -97,7 +97,7 @@ export default async function ArchivePage({
 
       <form className="flex flex-col md:flex-row gap-3 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }} />
+          <IconSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }} />
           <input name="search" defaultValue={params.search || ""} className="input pl-10" placeholder="Поиск по названию..." />
         </div>
         <input name="number" defaultValue={params.number || ""} className="input md:w-40" placeholder="Номер документа" />
@@ -148,10 +148,10 @@ export default async function ArchivePage({
                   {doc.fileUrl ? (
                     <div className="flex gap-2">
                       <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="file-link" title="Просмотреть">
-                        <Eye size={14} />
+                        <IconEye size={14} />
                       </a>
                       <a href={doc.fileUrl} download className="file-link" title="Скачать">
-                        <Download size={14} />
+                        <IconDownload size={14} />
                       </a>
                     </div>
                   ) : (
@@ -168,12 +168,12 @@ export default async function ArchivePage({
         <div className="flex items-center justify-center gap-4">
           {page > 1 ? (
             <Link href={buildQuery({ page: String(page - 1) })} className="btn">
-              <ChevronLeft size={16} />
+              <IconChevronLeft size={16} />
               Назад
             </Link>
           ) : (
             <span className="btn opacity-50 cursor-not-allowed">
-              <ChevronLeft size={16} />
+              <IconChevronLeft size={16} />
               Назад
             </span>
           )}
@@ -181,12 +181,12 @@ export default async function ArchivePage({
           {page < totalPages ? (
             <Link href={buildQuery({ page: String(page + 1) })} className="btn">
               Вперёд
-              <ChevronRight size={16} />
+              <IconChevronRight size={16} />
             </Link>
           ) : (
             <span className="btn opacity-50 cursor-not-allowed">
               Вперёд
-              <ChevronRight size={16} />
+              <IconChevronRight size={16} />
             </span>
           )}
         </div>

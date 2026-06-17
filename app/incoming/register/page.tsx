@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { registerIncoming } from "@/actions/incoming";
-import { ArrowLeft, Save, Upload } from "lucide-react";
+import { IconArrowLeft, IconDeviceFloppy, IconCloudUpload } from "@tabler/icons-react";
 import Link from "next/link";
 
 const schema = z.object({
@@ -68,7 +68,7 @@ export default function RegisterIncomingPage() {
     <div className="anim-fade-in">
         <div className="flex items-center gap-4">
           <Link href="/incoming" className="w-10 h-10 flex items-center justify-center rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)]">
-            <ArrowLeft className="w-5 h-5 text-[var(--text-muted)]" />
+            <IconArrowLeft className="w-5 h-5 text-[var(--text-muted)]" />
           </Link>
           <h1 className="text-2xl font-bold text-[var(--text-primary)]">Регистрация входящего документа</h1>
         </div>
@@ -118,7 +118,7 @@ export default function RegisterIncomingPage() {
             <div className="border-2 border-dashed border-[var(--border-subtle)] rounded-xl p-6 text-center hover:border-[var(--accent)]/30 transition-colors">
               <input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} className="hidden" id="file-upload" />
               <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center gap-2">
-                <Upload className="w-8 h-8 text-[var(--text-muted)]" />
+                <IconCloudUpload className="w-8 h-8 text-[var(--text-muted)]" />
                 <span className="text-sm text-[var(--text-muted)]">
                   {file ? file.name : "Нажмите для выбора файла"}
                 </span>
@@ -127,7 +127,7 @@ export default function RegisterIncomingPage() {
           </div>
 
           <button type="submit" disabled={isSubmitting} className="btn btn-navy">
-            <Save className="w-4 h-4" />
+            <IconDeviceFloppy className="w-4 h-4" />
             {isSubmitting ? "Сохранение..." : "Зарегистрировать"}
           </button>
         </form>

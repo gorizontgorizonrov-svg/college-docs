@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getIncomingList } from "@/actions/incoming";
-import { Plus, AlertCircle, Eye, Download } from "lucide-react";
+import { IconPlus, IconAlertCircle, IconEye, IconDownload } from "@tabler/icons-react";
 import { ClickableRow } from "@/components/ClickableRow";
 
 const statusLabels: Record<string, string> = {
@@ -45,7 +45,7 @@ export default async function IncomingPage() {
         <h1 className="doc-h1">Входящие документы</h1>
         {(session.user.role === "REGISTRAR" || session.user.role === "ADMIN") && (
           <Link href="/incoming/register" className="btn btn-navy">
-            <Plus size={16} />
+            <IconPlus size={16} />
             Зарегистрировать
           </Link>
         )}
@@ -88,7 +88,7 @@ export default async function IncomingPage() {
                     </td>
                     <td style={{ color: deadlineColor, fontWeight: 500 }}>
                       <div className="flex items-center gap-1">
-                        {isOverdue && <AlertCircle size={14} />}
+                        {isOverdue && <IconAlertCircle size={14} />}
                         {dl ? dl.toLocaleDateString("ru-RU") : "—"}
                       </div>
                     </td>
@@ -96,10 +96,10 @@ export default async function IncomingPage() {
                       {doc.fileUrl ? (
                         <div className="flex gap-2">
                           <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="file-link" title="Просмотреть">
-                            <Eye size={14} />
+                            <IconEye size={14} />
                           </a>
                           <a href={doc.fileUrl} download className="file-link" title="Скачать">
-                            <Download size={14} />
+                            <IconDownload size={14} />
                           </a>
                         </div>
                       ) : (

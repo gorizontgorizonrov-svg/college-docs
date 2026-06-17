@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { WifiOff } from "lucide-react";
+import { IconWifiOff } from "@tabler/icons-react";
 
 export function OfflineNotice() {
   const [isOnline, setIsOnline] = useState(true);
@@ -23,7 +23,7 @@ export function OfflineNotice() {
 
   return (
     <div className="fixed top-0 left-0 right-0 bg-[var(--warning)]/100 text-white px-4 py-2 z-50 flex items-center justify-center gap-2">
-      <WifiOff className="w-4 h-4" />
+      <IconWifiOff className="w-4 h-4" />
       <p className="text-sm font-medium">Нет подключения к интернету</p>
     </div>
   );

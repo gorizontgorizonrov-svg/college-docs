@@ -1,4 +1,4 @@
-import { Check, X, Minus, Timer, PenSquare } from "lucide-react";
+import { IconCheck, IconX, IconMinus, IconClock, IconSignature } from "@tabler/icons-react";
 
 const avatarColors = ["p1", "p2", "p3", "p4", "p5", "p6"];
 
@@ -48,7 +48,7 @@ export function ApprovalTimeline({ workflow, approvals }: ApprovalTimelineProps)
         const isSkipped = !hasApprovers && !isFutureStage;
 
         let nodeClass = "nd-skip";
-        let nodeContent: React.ReactNode = <Minus size={14} />;
+        let nodeContent: React.ReactNode = <IconMinus size={14} />;
         let connClass = "c-gray";
         let statusChipClass = "cgy";
         let statusLabel = "Пропущен";
@@ -56,17 +56,17 @@ export function ApprovalTimeline({ workflow, approvals }: ApprovalTimelineProps)
 
         if (isSkipped) {
           nodeClass = "nd-skip";
-          nodeContent = <Minus size={14} />;
+          nodeContent = <IconMinus size={14} />;
           statusChipClass = "cgy";
           statusLabel = "Пропущен";
         } else if (isRejected) {
           nodeClass = "nd-wait";
-          nodeContent = <X size={14} />;
+          nodeContent = <IconX size={14} />;
           statusChipClass = "ca";
           statusLabel = "Отклонён";
         } else if (allDecided) {
           nodeClass = "nd-done";
-          nodeContent = <Check size={14} />;
+          nodeContent = <IconCheck size={14} />;
           statusChipClass = "cg";
           statusLabel = "Согласовано";
           connClass = "c-green";
@@ -100,7 +100,7 @@ export function ApprovalTimeline({ workflow, approvals }: ApprovalTimelineProps)
               </div>
               <div className="tl-meta">
                 {stage.deadlineDays && (
-                  <span><Timer size={14} />{stage.deadlineDays} дн.</span>
+                  <span><IconClock size={14} />{stage.deadlineDays} дн.</span>
                 )}
                 {decided.length > 0 && decided[0]?.decidedAt && (
                   <span>{new Date(decided[0].decidedAt).toLocaleDateString("ru-RU")}</span>
@@ -134,7 +134,7 @@ export function ApprovalTimeline({ workflow, approvals }: ApprovalTimelineProps)
               {stageApprovals.map((approval: any) =>
                 approval.signature ? (
                   <div className="ep" key={`sig-${approval.id}`}>
-                    <PenSquare size={14} />
+                    <IconSignature size={14} />
                     Подписано ЭП · {new Date(approval.signature.createdAt || approval.decidedAt).toLocaleDateString("ru-RU")}
                   </div>
                 ) : null

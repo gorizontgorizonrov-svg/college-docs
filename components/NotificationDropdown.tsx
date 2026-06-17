@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Bell, CheckCheck } from "lucide-react";
+import { IconBell, IconChecks } from "@tabler/icons-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { getMyNotifications, getUnreadCount, markAsRead, markAllAsRead } from "@/actions/notifications";
@@ -79,7 +79,7 @@ export function NotificationDropdown() {
         onClick={() => setIsOpen(!isOpen)}
         className="relative flex items-center justify-center w-10 h-10 rounded-xl hover:bg-[var(--bg-secondary)]"
       >
-        <Bell className="w-5 h-5 text-[var(--text-secondary)]" />
+        <IconBell className="w-5 h-5 text-[var(--text-secondary)]" />
         {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-[var(--danger)] rounded-full">
             {unreadCount > 9 ? "9+" : unreadCount}
@@ -96,7 +96,7 @@ export function NotificationDropdown() {
                 onClick={handleMarkAllRead}
                 className="flex items-center gap-1 text-xs text-[var(--accent)] hover:text-[var(--accent-hover)]"
               >
-                <CheckCheck className="w-3.5 h-3.5" />
+                <IconChecks className="w-3.5 h-3.5" />
                 Все прочитано
               </button>
             )}

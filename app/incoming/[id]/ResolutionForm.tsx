@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { setResolution } from "@/actions/incoming";
-import { Send } from "lucide-react";
+import { IconSend } from "@tabler/icons-react";
 
 interface Employee {
   id: string;
@@ -74,7 +74,7 @@ export function ResolutionForm({ documentId, employees }: { documentId: string; 
       <button type="submit" disabled={isSubmitting} className="btn btn-navy">
         {isSubmitting ? "Сохранение..." : (
           <>
-            <Send className="w-4 h-4" />
+            <IconSend className="w-4 h-4" />
             Назначить резолюцию
           </>
         )}

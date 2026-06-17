@@ -1,6 +1,6 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
+import { IconMoon, IconSun } from "@tabler/icons-react";
 import { useTheme } from "./ThemeProvider";
 import { useTranslation } from "@/lib/i18n/client";
 
@@ -15,9 +15,9 @@ export function ThemeToggle() {
       title={theme === "dark" ? t("theme.light") : t("theme.dark")}
     >
       {theme === "dark" ? (
-        <Sun className="w-5 h-5 text-yellow-400" />
+        <IconSun className="w-5 h-5 text-yellow-400" />
       ) : (
-        <Moon className="w-5 h-5 text-accent" />
+        <IconMoon className="w-5 h-5 text-accent" />
       )}
     </button>
   );

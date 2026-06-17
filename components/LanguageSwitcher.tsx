@@ -2,7 +2,7 @@
 
 import { useTranslation } from "@/lib/i18n/client";
 import { locales, localeNames, localeFlags, localeLabels } from "@/lib/i18n/config";
-import { Globe } from "lucide-react";
+import { IconGlobe } from "@tabler/icons-react";
 
 export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   const { locale, setLocale, t } = useTranslation();
@@ -10,7 +10,7 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   return (
     <div className="language-switcher">
       <div className="language-switcher-header">
-        {!compact && <Globe size={18} />}
+        {!compact && <IconGlobe size={18} />}
         <span className="language-switcher-label">
           {compact ? localeFlags[locale] : t("settings.language")}
         </span>

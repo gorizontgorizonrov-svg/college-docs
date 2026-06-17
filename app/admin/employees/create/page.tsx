@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { IconArrowLeft } from "@tabler/icons-react";
 import Link from "next/link";
 
 const roleLabels: Record<string, string> = {
@@ -66,7 +66,7 @@ export default function CreateEmployeePage() {
     <div className="anim-fade-in">
         <div className="flex items-center gap-4 mb-6">
           <Link href="/admin/employees" className="w-10 h-10 flex items-center justify-center rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:bg-[var(--bg-secondary)]">
-            <ArrowLeft className="w-5 h-5 text-[var(--text-muted)]" />
+            <IconArrowLeft className="w-5 h-5 text-[var(--text-muted)]" />
           </Link>
           <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">Добавление сотрудника</h1>
         </div>

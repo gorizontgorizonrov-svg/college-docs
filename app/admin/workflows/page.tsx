@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { Plus, GitBranch } from "lucide-react";
+import { IconPlus, IconGitBranch } from "@tabler/icons-react";
 
 const typeLabels: Record<string, string> = {
   ORDER: "Приказ", DIRECTIVE: "Распоряжение", PROTOCOL: "Протокол",
@@ -24,7 +24,7 @@ export default async function WorkflowsPage() {
       <div className="flex items-center justify-between">
         <h1 className="doc-h1">Шаблоны маршрутов</h1>
         <button className="btn btn-navy">
-          <Plus size={16} />
+          <IconPlus size={16} />
           Создать шаблон
         </button>
       </div>
@@ -34,7 +34,7 @@ export default async function WorkflowsPage() {
           <div key={t.id} className="card" style={{ padding: 16 }}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="doc-ico ic-purple"><GitBranch size={14} /></div>
+                <div className="doc-ico ic-purple"><IconGitBranch size={14} /></div>
                 <div>
                   <div className="doc-name">{t.name}</div>
                   <div className="doc-type">{typeLabels[t.docType] || t.docType}</div>

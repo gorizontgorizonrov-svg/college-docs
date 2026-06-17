@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { submitApproval, submitSignature } from "@/actions/workflow";
-import { ThumbsUp, ThumbsDown, Undo, PenSquare } from "lucide-react";
+import { IconThumbUp, IconThumbDown, IconArrowBackUp, IconSignature } from "@tabler/icons-react";
 
 interface ApprovalActionsProps {
   approvalId: string;
@@ -63,20 +63,20 @@ export function ApprovalActions({ approvalId, canSign }: ApprovalActionsProps) {
 
       <div className="act-row">
         <button onClick={() => handleAction("APPROVE")} disabled={isLoading} className="btn btn-green">
-          <ThumbsUp size={16} />
+          <IconThumbUp size={16} />
           Согласовать
         </button>
         <button onClick={() => handleAction("RETURN_TO_AUTHOR")} disabled={isLoading} className="btn">
-          <Undo size={16} />
+          <IconArrowBackUp size={16} />
           На доработку
         </button>
         <button onClick={() => handleAction("REJECT")} disabled={isLoading} className="btn btn-danger">
-          <ThumbsDown size={16} />
+          <IconThumbDown size={16} />
           Отклонить
         </button>
         {canSign && (
           <button onClick={handleSign} disabled={isLoading} className="btn btn-navy">
-            <PenSquare size={16} />
+            <IconSignature size={16} />
             Подписать ЭП
           </button>
         )}

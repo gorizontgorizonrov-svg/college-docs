@@ -1,13 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createDocument } from "@/actions/documents";
 import type { InternalDocType } from "@prisma/client";
-import { ArrowLeft, Save, Send, Upload } from "lucide-react";
+import {
+  IconArrowLeft,
+  IconDeviceFloppy,
+  IconSend,
+  IconCloudUpload,
+  IconFile,
+  IconFileTypePdf,
+  IconFileTypeDoc,
+  IconFileTypeXls,
+  IconPhoto,
+  IconX,
+  IconFileZip,
+} from "@tabler/icons-react";
 import Link from "next/link";
 
 const docTypes = [
@@ -28,18 +40,66 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return bytes + " Б";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " КБ";
+  return (bytes / (1024 * 1024)).toFixed(1) + " МБ";
+}
+
+function getFileIcon(mimeType: string, size: number) {
+  if (mimeType.startsWith("image/")) return <IconPhoto size={size} />;
+  if (mimeType.includes("pdf")) return <IconFileTypePdf size={size} />;
+  if (mimeType.includes("word") || mimeType.includes("document"))
+    return <IconFileTypeDoc size={size} />;
+  if (mimeType.includes("spreadsheet") || mimeType.includes("excel") || mimeType.includes("xls"))
+    return <IconFileTypeXls size={size} />;
+  if (mimeType.includes("zip") || mimeType.includes("rar") || mimeType.includes("tar"))
+    return <IconFileZip size={size} />;
+  return <IconFile size={size} />;
+}
+
 export default function CreateDocumentPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdDocId, setCreatedDocId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
+
+  const [charCount, setCharCount] = useState(0);
+  const charLimit = 10000;
+
+  const handleFileSelect = useCallback((f: File | null) => {
+    setFile(f);
+    if (filePreview) { URL.revokeObjectURL(filePreview); setFilePreview(null); }
+    if (f && f.type.startsWith("image/")) {
+      setFilePreview(URL.createObjectURL(f));
+    }
+  }, [filePreview]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const f = e.dataTransfer.files?.[0];
+    if (f) handleFileSelect(f);
+  }, [handleFileSelect]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  }, []);
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
@@ -83,103 +143,181 @@ export default function CreateDocumentPage() {
 
   if (createdDocId) {
     return (
-      <div className="anim-fade-in">
-        <div className="card p-8 text-center space-y-6" style={{ maxWidth: 480, margin: "0 auto" }}>
-            <div className="w-16 h-16 bg-[var(--success)]/10 rounded-full flex items-center justify-center mx-auto">
-              <Save className="w-8 h-8 text-[var(--success)]" />
-            </div>
-            <h2 className="text-xl font-bold text-[var(--text-primary)]">Черновик сохранён</h2>
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={async () => {
-                  const { sendToWorkflow } = await import("@/actions/documents");
-                  await sendToWorkflow(createdDocId);
-                  router.push(`/documents/${createdDocId}`);
-                }}
-                className="btn btn-primary"
-              >
-                <Send className="w-4 h-4" />
-                Отправить на согласование
-              </button>
-              <button
-                onClick={() => router.push(`/documents/${createdDocId}`)}
-                className="btn"
-              >
-                Остаться в черновике
-              </button>
-            </div>
+      <div className="anim-fade-up">
+        <div className="glass-card p-8 text-center space-y-6" style={{ maxWidth: 480, margin: "0 auto" }}>
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ background: "var(--success-bg)" }}>
+            <IconDeviceFloppy className="w-8 h-8" style={{ color: "var(--success)" }} />
+          </div>
+          <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Черновик сохранён</h2>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={async () => {
+                const { sendToWorkflow } = await import("@/actions/documents");
+                await sendToWorkflow(createdDocId);
+                router.push(`/documents/${createdDocId}`);
+              }}
+              className="btn btn-primary"
+            >
+              <IconSend className="w-4 h-4" />
+              Отправить на согласование
+            </button>
+            <button
+              onClick={() => router.push(`/documents/${createdDocId}`)}
+              className="btn btn-ghost"
+            >
+              Остаться в черновике
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="anim-fade-in">
-        <div className="flex items-center gap-4 mb-6">
-          <Link href="/documents" className="w-10 h-10 flex items-center justify-center rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:bg-[var(--bg-secondary)]">
-            <ArrowLeft className="w-5 h-5 text-[var(--text-muted)]" />
-          </Link>
-          <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">Создание документа</h1>
-        </div>
+    <div className="anim-fade-up">
+      <div className="flex items-center gap-4 mb-6">
+        <Link
+          href="/documents"
+          className="w-10 h-10 flex items-center justify-center rounded-xl"
+          style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)" }}
+        >
+          <IconArrowLeft className="w-5 h-5" style={{ color: "var(--text-muted)" }} />
+        </Link>
+        <h1 className="text-2xl md:text-3xl font-bold" style={{ color: "var(--text-primary)" }}>Создание документа</h1>
+      </div>
 
-        <div className="max-w-3xl">
-          {error && (
-            <div className="mb-4 p-4 bg-[var(--danger)]/10 border border-[var(--danger)]/30 rounded-xl text-[var(--danger)] text-sm">{error}</div>
-          )}
+      <div className="max-w-3xl">
+        {error && (
+          <div className="mb-4 p-4 rounded-xl text-sm" style={{ background: "var(--danger-bg)", border: "1px solid var(--danger-border)", color: "var(--danger)" }}>
+            {error}
+          </div>
+        )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="card p-6 space-y-5">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-[var(--text-secondary)]">Тип документа *</label>
-                <select {...register("type")} className="select">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div className="glass-card">
+            <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.4px" }}>
+              Тип и заголовок
+            </h3>
+            <div className="mg">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Тип документа *</label>
+                <select {...register("type")} className="glass-select">
                   <option value="">Выберите тип</option>
                   {docTypes.map((t) => (
                     <option key={t.value} value={t.value}>{t.label}</option>
                   ))}
                 </select>
-                {errors.type && <p className="text-sm text-[var(--danger)]">{errors.type.message}</p>}
+                {errors.type && <p className="text-xs" style={{ color: "var(--danger)" }}>{errors.type.message}</p>}
               </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-[var(--text-secondary)]">Заголовок *</label>
-                <input {...register("title")} className="input" placeholder="Введите заголовок документа" />
-                {errors.title && <p className="text-sm text-[var(--danger)]">{errors.title.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-[var(--text-secondary)]">Содержание</label>
-                <textarea
-                  {...register("content")}
-                  className="input min-h-[200px] resize-y"
-                  placeholder="Введите содержание документа..."
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Заголовок *</label>
+                <input
+                  {...register("title")}
+                  className="glass-input"
+                  style={{ paddingLeft: 12 }}
+                  placeholder="Введите заголовок документа"
                 />
+                {errors.title && <p className="text-xs" style={{ color: "var(--danger)" }}>{errors.title.message}</p>}
               </div>
+            </div>
+          </div>
 
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-[var(--text-secondary)]">Прикреплённый файл</label>
-                <div className="border-2 border-dashed border-[var(--border-subtle)] rounded-xl p-6 text-center hover:border-[var(--accent)]/30 transition-colors">
-                  <input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} className="hidden" id="file-upload" />
-                  <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center gap-2">
-                    <Upload className="w-8 h-8 text-[var(--text-muted)]" />
-                    <span className="text-sm text-[var(--text-muted)]">
-                      {file ? file.name : "Нажмите для выбора файла"}
-                    </span>
-                  </label>
+          <div className="glass-card">
+            <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.4px" }}>
+              Содержание
+            </h3>
+            <div className="space-y-2">
+              <textarea
+                {...register("content")}
+                className="glass-textarea"
+                style={{ minHeight: 220 }}
+                placeholder="Введите содержание документа..."
+                maxLength={charLimit}
+                onChange={(e) => setCharCount(e.target.value.length)}
+              />
+              <div className="flex justify-end">
+                <span className="text-xs" style={{ color: charCount > charLimit * 0.9 ? "var(--warning)" : "var(--text-muted)" }}>
+                  {charCount.toLocaleString()} / {charLimit.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="glass-card">
+            <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.4px" }}>
+              Прикреплённый файл
+            </h3>
+
+            {file ? (
+              <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "var(--bg-secondary)", border: "1px solid var(--glass-border)" }}>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "var(--bg-hover)" }}>
+                  {filePreview ? (
+                    <img src={filePreview} alt="preview" className="w-10 h-10 rounded-lg object-cover" />
+                  ) : (
+                    getFileIcon(file.type, 20)
+                  )}
                 </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{file.name}</p>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>{formatFileSize(file.size)}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { handleFileSelect(null); }}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ color: "var(--text-muted)" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-hover)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                >
+                  <IconX size={16} />
+                </button>
               </div>
-            </div>
+            ) : (
+              <div
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                className="rounded-xl p-8 text-center transition-all duration-200 cursor-pointer"
+                style={{
+                  border: `2px dashed ${isDragOver ? "var(--accent)" : "var(--glass-border)"}`,
+                  background: isDragOver ? "var(--bg-selected)" : "transparent",
+                }}
+              >
+                <input
+                  type="file"
+                  onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
+                  className="hidden"
+                  id="file-upload"
+                />
+                <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center gap-2">
+                  <IconCloudUpload className="w-10 h-10" style={{ color: isDragOver ? "var(--accent-hover)" : "var(--text-muted)" }} />
+                  <span className="text-sm font-medium" style={{ color: isDragOver ? "var(--accent-hover)" : "var(--text-muted)" }}>
+                    {isDragOver ? "Отпустите файл для загрузки" : "Перетащите файл сюда или нажмите для выбора"}
+                  </span>
+                  <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+                    PDF, DOC, XLS, JPG, PNG — до 10 МБ
+                  </span>
+                </label>
+              </div>
+            )}
+          </div>
 
-            <div className="flex gap-3">
-              <button type="submit" disabled={isSubmitting} className="btn btn-primary flex-1">
-                {isSubmitting ? "Сохранение..." : (
-                  <>
-                    <Save className="w-4 h-4" />
-                    Сохранить черновик
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
+          <div className="flex gap-3">
+            <button type="submit" disabled={isSubmitting} className="btn btn-primary flex-1">
+              {isSubmitting ? (
+                <>
+                  <span className="w-4 h-4 rounded-full border-2 border-t-transparent inline-block" style={{ borderColor: "rgba(255,255,255,0.3)", borderTopColor: "white", animation: "spin 1s linear infinite" }} />
+                  Сохранение...
+                </>
+              ) : (
+                <>
+                  <IconDeviceFloppy className="w-4 h-4" />
+                  Сохранить черновик
+                </>
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getPendingApprovals } from "@/actions/documents";
-import { Clock } from "lucide-react";
+import { IconClock } from "@tabler/icons-react";
 import { ClickableRow } from "@/components/ClickableRow";
 
 const typeLabels: Record<string, string> = {
@@ -21,7 +21,7 @@ export default async function PendingPage() {
 
       {pending.length === 0 ? (
         <div className="empty-state">
-          <Clock size={32} style={{ color: "var(--text-muted)", marginBottom: 10, display: "block", margin: "0 auto 10px" }} />
+          <IconClock size={32} style={{ color: "var(--text-muted)", marginBottom: 10, display: "block", margin: "0 auto 10px" }} />
           <p>Нет документов, ожидающих решения</p>
         </div>
       ) : (

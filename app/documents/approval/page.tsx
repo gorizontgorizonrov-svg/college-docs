@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getPendingApprovals } from "@/actions/documents";
 import Link from "next/link";
-import { FileSignature, ArrowRight } from "lucide-react";
+import { IconSignature, IconArrowRight } from "@tabler/icons-react";
 
 export default async function ApprovalPage() {
   const session = await auth();
@@ -17,21 +17,21 @@ export default async function ApprovalPage() {
 
       {signable.length === 0 ? (
         <div className="empty-state">
-          <FileSignature size={32} style={{ color: "var(--text-muted)", marginBottom: 10, display: "block", margin: "0 auto 10px" }} />
+          <IconSignature size={32} style={{ color: "var(--text-muted)", marginBottom: 10, display: "block", margin: "0 auto 10px" }} />
           <p>Нет документов на подпись</p>
         </div>
       ) : (
         <div className="anim-stagger" style={{ display: "grid", gap: 8 }}>
           {signable.map((a) => (
             <Link key={a.id} href={`/documents/${a.document.id}`} className="doc-item">
-              <div className="doc-ico ic-purple"><FileSignature size={14} /></div>
+              <div className="doc-ico ic-purple"><IconSignature size={14} /></div>
               <div className="doc-info">
                 <div className="doc-type">
                   {new Date(a.document.createdAt).toLocaleDateString("ru-RU")}
                 </div>
                 <div className="doc-name">{a.document.title}</div>
               </div>
-              <ArrowRight size={14} style={{ color: "var(--text-muted)", flexShrink: 0, marginTop: 4 }} />
+              <IconArrowRight size={14} style={{ color: "var(--text-muted)", flexShrink: 0, marginTop: 4 }} />
             </Link>
           ))}
         </div>

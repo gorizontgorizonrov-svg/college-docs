@@ -8,24 +8,24 @@ import { SignatureStamp } from "@/components/SignatureStamp";
 import { ApprovalActions } from "./ApprovalActions";
 import FileDownload from "@/components/FileDownload";
 import {
-  ChevronRight,
-  Clock,
-  CheckCircle,
-  XCircle,
-  Archive,
-  FileText,
-  History,
-  Download,
-  ThumbsUp,
-  PenSquare,
-  Pencil,
-  Send,
-  Eye,
-  User,
-  GitBranch,
-  ClipboardList,
-  FolderOpen,
-} from "lucide-react";
+  IconChevronRight,
+  IconClock,
+  IconCircleCheck,
+  IconCircleX,
+  IconArchive,
+  IconFileText,
+  IconHistory,
+  IconDownload,
+  IconThumbUp,
+  IconSignature,
+  IconPencil,
+  IconSend,
+  IconUser,
+  IconGitBranch,
+  IconClipboardList,
+  IconFolderOpen,
+  IconEye,
+} from "@tabler/icons-react";
 
 const statusLabels: Record<string, string> = {
   DRAFT: "Черновик", IN_APPROVAL: "На согласовании", APPROVED: "Утверждён",
@@ -43,10 +43,10 @@ const statusChip: Record<string, string> = {
 };
 
 const statusIcon: Record<string, React.ReactNode> = {
-  IN_APPROVAL: <Clock size={14} />,
-  APPROVED: <CheckCircle size={14} />,
-  REJECTED: <XCircle size={14} />,
-  ARCHIVED: <Archive size={14} />,
+  IN_APPROVAL: <IconClock size={14} />,
+  APPROVED: <IconCircleCheck size={14} />,
+  REJECTED: <IconCircleX size={14} />,
+  ARCHIVED: <IconArchive size={14} />,
 };
 
 function computeDaysLeft(deadline: Date | null): number | null {
@@ -80,11 +80,11 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
     <div className="anim-fade-in">
       {/* Breadcrumbs */}
       <div className="crumb">
-        <ChevronRight size={14} />
+        <IconChevronRight size={14} />
         <span>{typeLabels[doc.type] || doc.type}</span>
-        <ChevronRight size={14} />
+        <IconChevronRight size={14} />
         <span>{doc.number ? doc.number.split("-").slice(0, 2).join("-") : "—"}</span>
-        <ChevronRight size={14} />
+        <IconChevronRight size={14} />
         <span>{doc.number || "—"}</span>
       </div>
 
@@ -94,7 +94,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
           <div className="doc-eyebrow">
             {doc.number && <span className="doc-num">{doc.number}</span>}
             <span className={statusChip[doc.status] || "stchip-neutral"}>
-              {statusIcon[doc.status] || <FileText size={14} />}
+              {statusIcon[doc.status] || <IconFileText size={14} />}
               {statusLabels[doc.status] || doc.status}
             </span>
           </div>
@@ -105,11 +105,11 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
         </div>
         <div className="act-row">
           <Link href={`/documents/versions/${id}`} className="btn btn-ghost">
-            <History size={16} />История
+            <IconHistory size={16} />История
           </Link>
           {doc.fileUrl && (
             <a href={doc.fileUrl} download className="btn btn-ghost">
-              <Download size={16} />PDF
+              <IconDownload size={16} />PDF
             </a>
           )}
           {myPendingApproval && (
@@ -120,7 +120,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
                 await submitApproval(myPendingApproval.id, "APPROVE");
               }}>
                 <button type="submit" className="btn btn-green">
-                  <ThumbsUp size={16} />Согласовать
+                  <IconThumbUp size={16} />Согласовать
                 </button>
               </form>
               {(session.user.role === "SIGNER" || session.user.role === "ADMIN") && (
@@ -130,7 +130,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
                   await submitSignature(myPendingApproval.id);
                 }}>
                   <button type="submit" className="btn btn-navy">
-                    <PenSquare size={16} />Подписать ЭП
+                    <IconSignature size={16} />Подписать ЭП
                   </button>
                 </form>
               )}
@@ -138,7 +138,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
           )}
           {canEdit && (
             <Link href={`/documents/${id}/edit`} className="btn">
-              <Pencil size={16} />Редактировать
+              <IconPencil size={16} />Редактировать
             </Link>
           )}
           {canSend && (
@@ -147,7 +147,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
               await sendToWorkflow(id);
             }}>
               <button type="submit" className="btn btn-navy">
-                <Send size={16} />Отправить
+                <IconSend size={16} />Отправить
               </button>
             </form>
           )}
@@ -186,7 +186,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
       {/* Requisites Card */}
       <div className="card">
         <div className="ch">
-          <div className="ch-left"><User size={16} />Реквизиты</div>
+          <div className="ch-left"><IconUser size={16} />Реквизиты</div>
         </div>
         <div className="cb">
           <div className="mg">
@@ -232,7 +232,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
                   {doc.fileUrl && (
                     <div className="file-link" style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", cursor: "default" }}>
-                      <FileText size={20} style={{ color: "var(--accent)", flexShrink: 0 }} />
+                      <IconFileText size={20} style={{ color: "var(--accent)", flexShrink: 0 }} />
                       <div style={{ flex: 1, fontSize: 13, minWidth: 0 }}>
                         <div style={{ fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                           {doc.fileUrl.split("/").pop()}
@@ -240,10 +240,10 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
                       </div>
                       <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
                         <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="file-link" title="Просмотреть">
-                          <Eye size={14} />
+                          <IconEye size={14} />
                         </a>
                         <a href={doc.fileUrl} download className="file-link" title="Скачать">
-                          <Download size={14} />
+                          <IconDownload size={14} />
                         </a>
                       </div>
                     </div>
@@ -259,7 +259,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
                     <form action="/api/download-zip" method="POST" target="_blank">
                       <input type="hidden" name="documentId" value={id} />
                       <button type="submit" style={{ cursor: "pointer", width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 8, border: "1px dashed var(--border)", background: "transparent", color: "var(--text-secondary)", fontSize: 13, fontFamily: "inherit" }}>
-                        <Download size={16} />Скачать все файлы ZIP
+                        <IconDownload size={16} />Скачать все файлы ZIP
                       </button>
                     </form>
                   )}
@@ -273,7 +273,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
       {/* Approval Timeline */}
       <div className="card">
         <div className="ch">
-          <div className="ch-left"><GitBranch size={16} />Маршрут согласования</div>
+          <div className="ch-left"><IconGitBranch size={16} />Маршрут согласования</div>
           {totalStages > 0 && (
             <div className="pb-row" style={{ width: 150 }}>
               <div className="pb-track"><div className="pb-fill" style={{ width: `${progressPct}%` }} /></div>
@@ -294,7 +294,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
       {myPendingApproval && (
         <div className="card">
           <div className="ch">
-            <div className="ch-left"><PenSquare size={16} />Ваше решение</div>
+            <div className="ch-left"><IconSignature size={16} />Ваше решение</div>
           </div>
           <div className="cb">
             <ApprovalActions
@@ -309,7 +309,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
       {doc.versions.length > 0 && (
         <div className="card">
           <div className="ch">
-            <div className="ch-left"><ClipboardList size={16} />Версии документа</div>
+            <div className="ch-left"><IconClipboardList size={16} />Версии документа</div>
           </div>
           <div className="cb">
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -320,7 +320,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
                   className="sb-item"
                   style={{ borderRadius: 8, padding: "8px 10px" }}
                 >
-                  <FolderOpen size={16} />
+                  <IconFolderOpen size={16} />
                   <span style={{ flex: 1 }}>
                     <span className="pname">Версия {v.version}</span>
                     {v.changeNote && <span className="prole" style={{ marginLeft: 6 }}>— {v.changeNote}</span>}

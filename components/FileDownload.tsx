@@ -2,17 +2,18 @@
 
 import { useState } from "react";
 import {
-  Download,
-  Eye,
-  Copy,
-  FileText,
-  FileImage,
-  FileArchive,
-  FileSpreadsheet,
-  File,
-  Loader2,
-  Check,
-} from "lucide-react";
+  IconDownload,
+  IconEye,
+  IconCopy,
+  IconFileText,
+  IconPhoto,
+  IconArchive,
+  IconFileSpreadsheet,
+  IconFile,
+  IconLoader2,
+  IconCheck,
+} from "@tabler/icons-react";
+import FilePreview from "./FilePreview";
 
 import type { FileAttachment } from "@prisma/client";
 
@@ -48,16 +49,16 @@ function formatDate(dateStr: string | Date): string {
 }
 
 function getFileIcon(mimeType: string) {
-  if (mimeType.startsWith("image/")) return <FileImage size={20} />;
+  if (mimeType.startsWith("image/")) return <IconPhoto size={20} />;
   if (mimeType.includes("spreadsheet") || mimeType.includes("excel"))
-    return <FileSpreadsheet size={20} />;
+    return <IconFileSpreadsheet size={20} />;
   if (mimeType.includes("zip") || mimeType.includes("rar") || mimeType.includes("7z") || mimeType.includes("tar") || mimeType.includes("gzip"))
-    return <FileArchive size={20} />;
+    return <IconArchive size={20} />;
   if (mimeType.includes("pdf"))
-    return <FileText size={20} />;
+    return <IconFileText size={20} />;
   if (mimeType.includes("word") || mimeType.includes("document"))
-    return <FileText size={20} />;
-  return <File size={20} />;
+    return <IconFileText size={20} />;
+  return <IconFile size={20} />;
 }
 
 function getFileTypeLabel(mimeType: string): string {
@@ -77,6 +78,7 @@ export default function FileDownload({
 }: FileDownloadProps) {
   const [downloading, setDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showFilePreview, setShowFilePreview] = useState(false);
 
   const handleDownload = async () => {
     setDownloading(true);
@@ -112,58 +114,68 @@ export default function FileDownload({
   };
 
   return (
-    <div className="file-download-card">
-      <div className="file-download-icon">{getFileIcon(file.mimeType)}</div>
-      <div className="file-download-info">
-        <div className="file-download-name" title={file.originalName}>
-          {file.originalName}
-        </div>
-        <div className="file-download-meta">
-          <span>{formatSize(file.fileSize)}</span>
-          <span className="file-download-sep">•</span>
-          <span>{getFileTypeLabel(file.mimeType)}</span>
-          <span className="file-download-sep">•</span>
-          <span>Загрузок: {file.downloadCount}</span>
-          <span className="file-download-sep">•</span>
-          <span>{formatDate(file.createdAt)}</span>
-        </div>
-        {file.uploadedBy?.employee && (
-          <div className="file-download-uploader">
-            {file.uploadedBy.employee.lastName} {file.uploadedBy.employee.firstName}
-            {file.uploadedBy.employee.position && (
-              <> — {file.uploadedBy.employee.position.name}</>
-            )}
+    <>
+      <div className="file-download-card">
+        <div className="file-download-icon">{getFileIcon(file.mimeType)}</div>
+        <div className="file-download-info">
+          <div className="file-download-name" title={file.originalName}>
+            {file.originalName}
           </div>
-        )}
-      </div>
-      <div className="file-download-actions">
-        <button
-          onClick={handleDownload}
-          disabled={downloading}
-          className="file-action-btn"
-          title="Скачать"
-        >
-          {downloading ? <Loader2 size={16} className="spin" /> : <Download size={16} />}
-        </button>
-        {showPreview && (
-          <a
-            href={`/api/files/${file.storedName}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <div className="file-download-meta">
+            <span>{formatSize(file.fileSize)}</span>
+            <span className="file-download-sep">•</span>
+            <span>{getFileTypeLabel(file.mimeType)}</span>
+            <span className="file-download-sep">•</span>
+            <span>Загрузок: {file.downloadCount}</span>
+            <span className="file-download-sep">•</span>
+            <span>{formatDate(file.createdAt)}</span>
+          </div>
+          {file.uploadedBy?.employee && (
+            <div className="file-download-uploader">
+              {file.uploadedBy.employee.lastName} {file.uploadedBy.employee.firstName}
+              {file.uploadedBy.employee.position && (
+                <> — {file.uploadedBy.employee.position.name}</>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="file-download-actions">
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
             className="file-action-btn"
-            title="Просмотреть"
+            title="Скачать"
           >
-            <Eye size={16} />
-          </a>
-        )}
-        <button
-          onClick={handleCopyLink}
-          className="file-action-btn"
-          title="Копировать ссылку"
-        >
-          {copied ? <Check size={16} /> : <Copy size={16} />}
-        </button>
+            {downloading ? <IconLoader2 size={16} className="spin" /> : <IconDownload size={16} />}
+          </button>
+          {showPreview && (
+            <button
+              onClick={() => setShowFilePreview(true)}
+              className="file-action-btn"
+              title="Просмотреть"
+            >
+              <IconEye size={16} />
+            </button>
+          )}
+          <button
+            onClick={handleCopyLink}
+            className="file-action-btn"
+            title="Копировать ссылку"
+          >
+            {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
+          </button>
+        </div>
       </div>
+
+      {showFilePreview && (
+        <FilePreview
+          fileUrl={`/api/files/${file.storedName}`}
+          fileName={file.originalName}
+          mimeType={file.mimeType}
+          fileId={file.id}
+          onClose={() => setShowFilePreview(false)}
+        />
+      )}
 
       <style jsx>{`
         .file-download-card {
@@ -171,26 +183,28 @@ export default function FileDownload({
           align-items: center;
           gap: 12px;
           padding: 10px 14px;
-          border-radius: 8px;
-          border: 1px solid var(--border);
-          background: var(--card-bg);
-          transition: border-color 0.15s;
+          border-radius: 10px;
+          border: 1px solid var(--glass-border);
+          background: var(--glass-bg);
+          backdrop-filter: blur(8px);
+          transition: all 0.2s;
         }
         .file-download-card:hover {
-          border-color: var(--primary);
+          border-color: var(--border-light);
+          background: var(--glass-bg-hover);
         }
         .file-download-icon {
           flex-shrink: 0;
-          color: var(--primary);
+          color: var(--accent-hover);
         }
         .file-download-info {
           flex: 1;
           min-width: 0;
         }
         .file-download-name {
-          font-weight: 500;
+          font-weight: 600;
           font-size: 14px;
-          color: var(--text);
+          color: var(--text-primary);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -208,7 +222,7 @@ export default function FileDownload({
         }
         .file-download-uploader {
           font-size: 11px;
-          color: var(--text-tertiary);
+          color: var(--text-muted);
           margin-top: 1px;
         }
         .file-download-actions {
@@ -222,17 +236,18 @@ export default function FileDownload({
           justify-content: center;
           width: 32px;
           height: 32px;
-          border-radius: 6px;
-          border: 1px solid var(--border);
-          background: var(--card-bg);
+          border-radius: 8px;
+          border: 1px solid var(--glass-border);
+          background: var(--glass-bg);
           color: var(--text-secondary);
           cursor: pointer;
           transition: all 0.15s;
+          backdrop-filter: blur(8px);
         }
         .file-action-btn:hover {
-          background: var(--hover-bg);
-          color: var(--primary);
-          border-color: var(--primary);
+          background: var(--bg-selected);
+          color: var(--accent-hover);
+          border-color: var(--accent);
         }
         .file-action-btn:disabled {
           opacity: 0.6;
@@ -246,6 +261,6 @@ export default function FileDownload({
           to { transform: rotate(360deg); }
         }
       `}</style>
-    </div>
+    </>
   );
 }

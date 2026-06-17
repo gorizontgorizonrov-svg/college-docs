@@ -4,14 +4,14 @@ import { useState } from "react";
 import { useTranslation } from "@/lib/i18n/client";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import {
-  Globe,
-  Sun,
-  Moon,
-  Compass,
-  HelpCircle,
-  Keyboard,
-  BookOpen,
-} from "lucide-react";
+  IconGlobe,
+  IconSun,
+  IconMoon,
+  IconCompass,
+  IconHelpCircle,
+  IconKeyboard,
+  IconBook,
+} from "@tabler/icons-react";
 
 export function SettingsClient() {
   const { locale, t } = useTranslation();
@@ -33,7 +33,7 @@ export function SettingsClient() {
 
   const helpItems = [
     {
-      icon: <Keyboard size={20} />,
+      icon: <IconKeyboard size={20} />,
       title: "Клавиатурные сокращения",
       titleKy: "Клавиатуралык кыскартуулар",
       titleEn: "Keyboard shortcuts",
@@ -44,7 +44,7 @@ export function SettingsClient() {
       descZh: "使用 Ctrl+N 创建文件，Ctrl+F 搜索",
     },
     {
-      icon: <BookOpen size={20} />,
+      icon: <IconBook size={20} />,
       title: "Руководство пользователя",
       titleKy: "Колдонуучу нускамасы",
       titleEn: "User guide",
@@ -55,7 +55,7 @@ export function SettingsClient() {
       descZh: "阅读系统文档",
     },
     {
-      icon: <HelpCircle size={20} />,
+      icon: <IconHelpCircle size={20} />,
       title: "Часто задаваемые вопросы",
       titleKy: "Көп берилүүчү суроолор",
       titleEn: "FAQ",
@@ -87,7 +87,7 @@ export function SettingsClient() {
       <div className="card p-6">
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center shrink-0">
-            <Globe className="w-5 h-5 text-[var(--accent)]" />
+            <IconGlobe className="w-5 h-5 text-[var(--accent)]" />
           </div>
           <div className="flex-1 space-y-4">
             <div>
@@ -106,9 +106,9 @@ export function SettingsClient() {
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center shrink-0">
             {theme === "light" ? (
-              <Sun className="w-5 h-5 text-[var(--accent)]" />
+              <IconSun className="w-5 h-5 text-[var(--accent)]" />
             ) : (
-              <Moon className="w-5 h-5 text-[var(--accent)]" />
+              <IconMoon className="w-5 h-5 text-[var(--accent)]" />
             )}
           </div>
           <div className="flex-1 space-y-4">
@@ -123,14 +123,14 @@ export function SettingsClient() {
                 onClick={() => theme !== "light" && toggleTheme()}
                 className={`theme-option ${theme === "light" ? "active" : ""}`}
               >
-                <Sun size={16} />
+                <IconSun size={16} />
                 <span>{t("settings.themeLight")}</span>
               </button>
               <button
                 onClick={() => theme !== "dark" && toggleTheme()}
                 className={`theme-option ${theme === "dark" ? "active" : ""}`}
               >
-                <Moon size={16} />
+                <IconMoon size={16} />
                 <span>{t("settings.themeDark")}</span>
               </button>
             </div>
@@ -153,7 +153,7 @@ export function SettingsClient() {
       <div className="card p-6">
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center shrink-0">
-            <Compass className="w-5 h-5 text-[var(--accent)]" />
+            <IconCompass className="w-5 h-5 text-[var(--accent)]" />
           </div>
           <div className="flex-1 space-y-4">
             <div>

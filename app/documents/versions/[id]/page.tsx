@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { ArrowLeft, RotateCcw } from "lucide-react";
+import { IconArrowLeft, IconRefresh } from "@tabler/icons-react";
 
 export default async function VersionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -28,7 +28,7 @@ export default async function VersionDetailPage({ params }: { params: Promise<{ 
     <div className="min-h-screen ">
       <div className="w-full px-4 md:px-6 lg:px-8 py-6 space-y-6 max-w-4xl">
         <Link href={`/documents/${version.documentId}`} className="inline-flex items-center gap-2 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]">
-          <ArrowLeft className="w-4 h-4" />
+          <IconArrowLeft className="w-4 h-4" />
           К документу
         </Link>
 
@@ -76,7 +76,7 @@ export default async function VersionDetailPage({ params }: { params: Promise<{ 
               await restoreVersion(version.documentId, version.content || "");
             }}>
               <button type="submit" className="btn mt-4">
-                <RotateCcw className="w-4 h-4" />
+                <IconRefresh className="w-4 h-4" />
                 Восстановить эту версию
               </button>
             </form>

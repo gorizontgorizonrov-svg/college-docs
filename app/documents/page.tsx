@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getMyDocuments } from "@/actions/documents";
-import { Plus, FileText, Download, Eye } from "lucide-react";
+import { IconPlus, IconFileText, IconDownload, IconEye } from "@tabler/icons-react";
 import { ClickableRow } from "@/components/ClickableRow";
 
 const statusLabels: Record<string, string> = {
@@ -42,14 +42,14 @@ export default async function DocumentsPage() {
       <div className="flex items-center justify-between">
         <h1 className="doc-h1">Мои документы</h1>
         <Link href="/documents/create" className="btn btn-navy">
-          <Plus size={16} />
+          <IconPlus size={16} />
           Создать
         </Link>
       </div>
 
       {documents.length === 0 ? (
         <div className="empty-state">
-          <FileText size={32} style={{ color: "var(--text-muted)", marginBottom: 10, display: "block", margin: "0 auto 10px" }} />
+          <IconFileText size={32} style={{ color: "var(--text-muted)", marginBottom: 10, display: "block", margin: "0 auto 10px" }} />
           <p>У вас пока нет документов</p>
           <Link href="/documents/create" className="btn btn-navy" style={{ marginTop: 16 }}>
             Создать первый документ
@@ -86,10 +86,10 @@ export default async function DocumentsPage() {
                     {doc.fileUrl ? (
                       <div className="flex gap-2">
                         <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="file-link" title="Просмотреть">
-                          <Eye size={14} />
+                          <IconEye size={14} />
                         </a>
                         <a href={doc.fileUrl} download className="file-link" title="Скачать">
-                          <Download size={14} />
+                          <IconDownload size={14} />
                         </a>
                       </div>
                     ) : (

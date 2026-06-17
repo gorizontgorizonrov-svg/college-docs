@@ -13,7 +13,7 @@ export function Footer() {
         <div className="footer-col">
           <div className="footer-brand">
             <div className="footer-logo">
-              <img src="/images/college-logo.svg" alt={t("app.shortName")} />
+              <span>ЖАК</span>
             </div>
             <div>
               <p className="footer-brand-name">{t("app.shortName")} {t("app.college").split(" ").pop()}</p>

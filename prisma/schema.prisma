@@ -131,6 +131,7 @@ model Employee {
   positionId   String
   departmentId String?
   publicKey    String?
+  avatarUrl    String?
 
   user       User       @relation(fields: [userId], references: [id])
   position   Position   @relation(fields: [positionId], references: [id])
