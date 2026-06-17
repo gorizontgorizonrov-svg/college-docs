@@ -30,13 +30,13 @@ async function main() {
     prisma.department.create({ data: { name: "Администрация", code: "ADMIN" } }),
   ]);
 
-  const newDepartments = await Promise.all([
+  await Promise.all([
     prisma.department.create({ data: { name: "ПЦК «Информационные технологии»", code: "PKK-IT" } }),
     prisma.department.create({ data: { name: "ПЦК «Строительство»", code: "PKK-STROY" } }),
     prisma.department.create({ data: { name: "ПЦК «Экономика»", code: "PKK-ECO" } }),
   ]);
 
-  const [depAS, depEE, depPed, depUO, depAdmin, depIT, depStroy, depEco] = [...departments, ...newDepartments];
+  const [depAS, , , depUO, depAdmin] = departments;
 
   // 3. Пользователи + Сотрудники
   const adminUser = await prisma.user.create({
@@ -53,15 +53,16 @@ async function main() {
   };
 
   const dirUser = await createEmployee("turdubaeva@jak.kg", "SIGNER", "Б.М.", "Турдубаева", director.id, depAdmin.id);
-  const zamUser = await createEmployee("gulperi@jak.kg", "SIGNER", "Гулпери", "Кожобек кызы", zamDir.id, depAdmin.id);
   const nachUser = await createEmployee("abieva@jak.kg", "VALIDATOR", "М.Ш.", "Абиева", nachUch.id, depUO.id);
-  const insUser = await createEmployee("kudukbaeva@jak.kg", "VALIDATOR", "Э.", "Кудукбаева", inspektor.id, depUO.id);
-  const deloUser = await createEmployee("saparbaeva@jak.kg", "REGISTRAR", "М.М.", "Сапарбаева", deloproizvod.id, depUO.id);
   const teacherUser = await createEmployee("teacher@jak.kg", "INITIATOR", "И.И.", "Учитель", teacher.id, depAS.id);
-  const bekovUser = await createEmployee("bekov@jak.kg", "SIGNER", "Э.", "Беков", director.id, depAdmin.id);
+
+  await createEmployee("gulperi@jak.kg", "SIGNER", "Гулпери", "Кожобек кызы", zamDir.id, depAdmin.id);
+  await createEmployee("kudukbaeva@jak.kg", "VALIDATOR", "Э.", "Кудукбаева", inspektor.id, depUO.id);
+  await createEmployee("saparbaeva@jak.kg", "REGISTRAR", "М.М.", "Сапарбаева", deloproizvod.id, depUO.id);
+  await createEmployee("bekov@jak.kg", "SIGNER", "Э.", "Беков", director.id, depAdmin.id);
 
   // 4. Workflow шаблоны
-  const orderTemplate = await prisma.workflowTemplate.create({
+  await prisma.workflowTemplate.create({
     data: {
       name: "Согласование приказа",
       docType: "ORDER",
@@ -77,7 +78,7 @@ async function main() {
     },
   });
 
-  const memoTemplate = await prisma.workflowTemplate.create({
+  await prisma.workflowTemplate.create({
     data: {
       name: "Согласование служебной записки",
       docType: "MEMO",
@@ -91,7 +92,7 @@ async function main() {
     },
   });
 
-  const reportTemplate = await prisma.workflowTemplate.create({
+  await prisma.workflowTemplate.create({
     data: {
       name: "Согласование отчёта",
       docType: "REPORT",

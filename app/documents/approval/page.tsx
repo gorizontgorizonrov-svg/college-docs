@@ -2,29 +2,40 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getPendingApprovals } from "@/actions/documents";
 import Link from "next/link";
+import { FileSignature, ArrowRight } from "lucide-react";
 
 export default async function ApprovalPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
   const pending = await getPendingApprovals(session.user.id);
-  const signable = pending.filter((a) => a.document.status === "APPROVED" && !a.decision);
+  const signable = pending.filter((a) => !a.decision);
 
   return (
-    <div className="min-h-screen ">
-      <div className="w-full px-4 md:px-6 lg:px-8 py-6 space-y-6">
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">На подпись</h1>
-        {signable.length === 0 ? (
-          <p className="text-[var(--text-muted)]">Нет документов на подпись</p>
-        ) : (
-          signable.map((a) => (
-            <Link key={a.id} href={`/documents/${a.document.id}`} className="card p-4 block">
-              <p className="font-medium text-[var(--text-primary)]">{a.document.title}</p>
-              <p className="text-sm text-[var(--text-muted)]">{new Date(a.document.createdAt).toLocaleDateString("ru-RU")}</p>
+    <div className="anim-fade-in space-y-4">
+      <h1 className="doc-h1">На подпись</h1>
+
+      {signable.length === 0 ? (
+        <div className="empty-state">
+          <FileSignature size={32} style={{ color: "var(--text-muted)", marginBottom: 10, display: "block", margin: "0 auto 10px" }} />
+          <p>Нет документов на подпись</p>
+        </div>
+      ) : (
+        <div className="anim-stagger" style={{ display: "grid", gap: 8 }}>
+          {signable.map((a) => (
+            <Link key={a.id} href={`/documents/${a.document.id}`} className="doc-item">
+              <div className="doc-ico ic-purple"><FileSignature size={14} /></div>
+              <div className="doc-info">
+                <div className="doc-type">
+                  {new Date(a.document.createdAt).toLocaleDateString("ru-RU")}
+                </div>
+                <div className="doc-name">{a.document.title}</div>
+              </div>
+              <ArrowRight size={14} style={{ color: "var(--text-muted)", flexShrink: 0, marginTop: 4 }} />
             </Link>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

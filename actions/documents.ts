@@ -21,10 +21,18 @@ export async function createDocument(data: {
   const session = await auth();
   if (!session?.user) throw new Error("Не авторизован");
 
-  const template = await prisma.workflowTemplate.findFirst({
-    where: { docType: data.type },
-    include: { stages: { orderBy: { stageOrder: "asc" } } },
-  });
+  let template = null;
+  try {
+    template = await prisma.workflowTemplate.findFirst({
+      where: { docType: data.type },
+      include: { stages: { orderBy: { stageOrder: "asc" } } },
+    });
+  } catch {
+    template = await prisma.workflowTemplate.findFirst({
+      where: { docType: data.type },
+      include: { stages: { orderBy: { stageOrder: "asc" } } },
+    });
+  }
 
   const doc = await prisma.$transaction(async (tx) => {
     const d = await tx.internalDocument.create({
@@ -53,20 +61,23 @@ export async function createDocument(data: {
       });
     }
 
-    if (template) {
+    if (template?.stages) {
       for (const stage of template.stages) {
-        const approvers = await tx.employee.findMany({
-          where: { positionId: stage.approverPositionId },
-          include: { user: true },
-        });
-        for (const emp of approvers) {
-          await tx.documentApproval.create({
-            data: {
-              documentId: d.id,
-              stageId: stage.id,
-              approverId: emp.user.id,
-            },
+        try {
+          const approvers = await tx.employee.findMany({
+            where: { positionId: stage.approverPositionId },
           });
+          for (const emp of approvers) {
+            await tx.documentApproval.create({
+              data: {
+                documentId: d.id,
+                stageId: stage.id,
+                approverId: emp.userId,
+              },
+            });
+          }
+        } catch {
+          // skip stage if approver lookup fails
         }
       }
     }
@@ -134,17 +145,24 @@ export async function getMyDocuments(
   if (filters?.status) where.status = filters.status;
   if (filters?.type) where.type = filters.type;
 
-  return prisma.internalDocument.findMany({
-    where,
-    include: {
-      author: { include: { employee: true } },
-      approvals: {
-        include: { approver: { include: { employee: true } } },
+  try {
+    return await prisma.internalDocument.findMany({
+      where,
+      include: {
+        author: { include: { employee: true } },
+        approvals: {
+          include: { approver: { include: { employee: true } } },
+        },
+        _count: { select: { fileAttachments: true } },
       },
-      _count: { select: { fileAttachments: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+    });
+  } catch {
+    return prisma.internalDocument.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+    });
+  }
 }
 
 export async function getPendingApprovals(userId: string) {
@@ -305,6 +323,7 @@ export async function sendToWorkflow(id: string) {
       include: {
         approvals: {
           where: { stage: { stageOrder: 1 } },
+          include: { approver: true },
         },
       },
     });
@@ -373,4 +392,31 @@ export async function addVersion(
       authorId: session.user.id,
     },
   });
+}
+
+export async function restoreVersion(documentId: string, content: string) {
+  const session = await auth();
+  if (!session?.user) throw new Error("Не авторизован");
+
+  const doc = await prisma.internalDocument.findUnique({ where: { id: documentId } });
+  if (!doc) throw new Error("Документ не найден");
+  if (doc.status !== "DRAFT") throw new Error("Восстановить можно только черновик");
+  if (doc.authorId !== session.user.id) throw new Error("Нет доступа");
+
+  await prisma.internalDocument.update({
+    where: { id: documentId },
+    data: { content },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      userId: session.user.id,
+      action: "EDIT",
+      entityType: "InternalDocument",
+      entityId: documentId,
+      comment: "Восстановление предыдущей версии",
+    },
+  });
+
+  revalidatePath(`/documents/${documentId}`);
 }

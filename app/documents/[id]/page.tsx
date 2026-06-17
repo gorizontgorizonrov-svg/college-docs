@@ -49,6 +49,11 @@ const statusIcon: Record<string, React.ReactNode> = {
   ARCHIVED: <Archive size={14} />,
 };
 
+function computeDaysLeft(deadline: Date | null): number | null {
+  if (!deadline) return null;
+  return Math.ceil((deadline.getTime() - Date.now()) / 86400000);
+}
+
 export default async function DocumentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
@@ -69,9 +74,10 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
   const isAuthor = doc.authorId === session.user.id;
   const canEdit = isAuthor && doc.status === "DRAFT";
   const canSend = isAuthor && doc.status === "DRAFT";
+  const daysLeft = computeDaysLeft(doc.deadline);
 
   return (
-    <>
+    <div className="anim-fade-in">
       {/* Breadcrumbs */}
       <div className="crumb">
         <ChevronRight size={14} />
@@ -160,7 +166,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
         </div>
         <div className="st">
           <div className="st-lbl">Срок исполнения</div>
-          <div className="st-val">{doc.deadline ? "+1 дн." : "—"}</div>
+          <div className="st-val">{daysLeft !== null ? `${daysLeft} дн.` : "—"}</div>
           <div className="st-sub ok">{doc.deadline ? "В срок" : "Не указан"}</div>
         </div>
         <div className="st">
@@ -225,19 +231,19 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
                 <div className="form-label">Прикреплённые файлы</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
                   {doc.fileUrl && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--card-bg)" }}>
-                      <FileText size={20} style={{ color: "var(--primary)", flexShrink: 0 }} />
+                    <div className="file-link" style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", cursor: "default" }}>
+                      <FileText size={20} style={{ color: "var(--accent)", flexShrink: 0 }} />
                       <div style={{ flex: 1, fontSize: 13, minWidth: 0 }}>
                         <div style={{ fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                           {doc.fileUrl.split("/").pop()}
                         </div>
                       </div>
                       <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                        <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" title="Просмотреть" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 6, border: "1px solid var(--border)", color: "var(--text-secondary)", textDecoration: "none" }}>
-                          <Eye size={16} />
+                        <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="file-link" title="Просмотреть">
+                          <Eye size={14} />
                         </a>
-                        <a href={doc.fileUrl} download title="Скачать" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 6, border: "1px solid var(--border)", color: "var(--text-secondary)", textDecoration: "none" }}>
-                          <Download size={16} />
+                        <a href={doc.fileUrl} download className="file-link" title="Скачать">
+                          <Download size={14} />
                         </a>
                       </div>
                     </div>
@@ -326,6 +332,6 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

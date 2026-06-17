@@ -92,109 +92,105 @@ export default async function ArchivePage({
   };
 
   return (
-    <div className="min-h-screen ">
-      <div className="w-full px-4 md:px-6 lg:px-8 py-6 space-y-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">Архив документов</h1>
+    <div className="anim-fade-in space-y-4">
+      <h1 className="doc-h1">Архив документов</h1>
 
-        <form className="flex flex-col md:flex-row gap-3 flex-wrap">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
-            <input name="search" defaultValue={params.search || ""} className="input pl-10" placeholder="Поиск по названию..." />
-          </div>
-          <input name="number" defaultValue={params.number || ""} className="input md:w-40" placeholder="Номер документа" />
-          <select name="type" defaultValue={params.type || ""} className="select md:w-44">
-            <option value="">Все типы</option>
-            {Object.entries(typeLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-          <select name="status" defaultValue={params.status || ""} className="select md:w-44">
-            <option value="">Все статусы</option>
-            {Object.entries(statusLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-          <input name="dateFrom" type="date" defaultValue={params.dateFrom || ""} className="input md:w-40" placeholder="Дата с" />
-          <input name="dateTo" type="date" defaultValue={params.dateTo || ""} className="input md:w-40" placeholder="Дата по" />
-          <button type="submit" className="btn">Поиск</button>
-        </form>
-
-        <p className="text-sm text-[var(--text-muted)]">Найдено: {total}</p>
-
-        <div className="card p-0 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className=" border-b border-[var(--border-subtle)]">
-                <tr>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-[var(--text-muted)]">Номер</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-[var(--text-muted)]">Тип</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-[var(--text-muted)]">Название</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-[var(--text-muted)]">Автор</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-[var(--text-muted)]">Статус</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-[var(--text-muted)]">Дата</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-[var(--text-muted)]">Файл</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border-subtle)]">
-                {documents.map((doc) => (
-                  <ClickableRow key={doc.id} href={`/documents/${doc.id}`} className="hover:bg-[var(--bg-secondary)]">
-                    <td className="px-4 py-3 text-sm text-[var(--text-muted)]">{doc.number || "—"}</td>
-                    <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">{typeLabels[doc.type] || doc.type}</td>
-                    <td className="px-4 py-3 font-medium text-[var(--accent)]">{doc.title}</td>
-                    <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
-                      {doc.author?.employee ? `${doc.author.employee.lastName} ${doc.author.employee.firstName}` : "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-1 text-xs rounded-full ${statusColors[doc.status] || "badge-neutral"}`}>
-                        {statusLabels[doc.status] || doc.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-[var(--text-muted)]">{new Date(doc.createdAt).toLocaleDateString("ru-RU")}</td>
-                    <td className="px-4 py-3">
-                      {doc.fileUrl ? (
-                        <div className="flex gap-2">
-                          <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="file-link text-xs" title="Просмотреть">
-                            <Eye className="w-3.5 h-3.5" />
-                          </a>
-                          <a href={doc.fileUrl} download className="file-link text-xs" title="Скачать">
-                            <Download className="w-3.5 h-3.5" />
-                          </a>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-[var(--text-muted)]">—</span>
-                      )}
-                    </td>
-                  </ClickableRow>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      <form className="flex flex-col md:flex-row gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }} />
+          <input name="search" defaultValue={params.search || ""} className="input pl-10" placeholder="Поиск по названию..." />
         </div>
+        <input name="number" defaultValue={params.number || ""} className="input md:w-40" placeholder="Номер документа" />
+        <select name="type" defaultValue={params.type || ""} className="select md:w-44">
+          <option value="">Все типы</option>
+          {Object.entries(typeLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+        </select>
+        <select name="status" defaultValue={params.status || ""} className="select md:w-44">
+          <option value="">Все статусы</option>
+          {Object.entries(statusLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+        </select>
+        <input name="dateFrom" type="date" defaultValue={params.dateFrom || ""} className="input md:w-40" placeholder="Дата с" />
+        <input name="dateTo" type="date" defaultValue={params.dateTo || ""} className="input md:w-40" placeholder="Дата по" />
+        <button type="submit" className="btn">Поиск</button>
+      </form>
 
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-4">
-            {page > 1 ? (
-              <Link href={buildQuery({ page: String(page - 1) })} className="btn flex items-center gap-2">
-                <ChevronLeft className="w-4 h-4" />
-                Назад
-              </Link>
-            ) : (
-              <span className="btn opacity-50 cursor-not-allowed flex items-center gap-2">
-                <ChevronLeft className="w-4 h-4" />
-                Назад
-              </span>
-            )}
-            <span className="text-sm text-[var(--text-muted)]">Страница {page} из {totalPages}</span>
-            {page < totalPages ? (
-              <Link href={buildQuery({ page: String(page + 1) })} className="btn flex items-center gap-2">
-                Вперёд
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            ) : (
-              <span className="btn opacity-50 cursor-not-allowed flex items-center gap-2">
-                Вперёд
-                <ChevronRight className="w-4 h-4" />
-              </span>
-            )}
-          </div>
-        )}
+      <p className="text-sm" style={{ color: "var(--text-muted)" }}>Найдено: {total}</p>
+
+      <div className="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Номер</th>
+              <th>Тип</th>
+              <th>Название</th>
+              <th>Автор</th>
+              <th>Статус</th>
+              <th>Дата</th>
+              <th>Файл</th>
+            </tr>
+          </thead>
+          <tbody>
+            {documents.map((doc) => (
+              <ClickableRow key={doc.id} href={`/documents/${doc.id}`}>
+                <td style={{ color: "var(--text-muted)" }}>{doc.number || "—"}</td>
+                <td>{typeLabels[doc.type] || doc.type}</td>
+                <td className="font-medium" style={{ color: "var(--accent)" }}>{doc.title}</td>
+                <td>
+                  {doc.author?.employee ? `${doc.author.employee.lastName} ${doc.author.employee.firstName}` : "—"}
+                </td>
+                <td>
+                  <span className={`badge ${statusColors[doc.status] || "badge-neutral"}`}>
+                    {statusLabels[doc.status] || doc.status}
+                  </span>
+                </td>
+                <td style={{ color: "var(--text-muted)" }}>{new Date(doc.createdAt).toLocaleDateString("ru-RU")}</td>
+                <td>
+                  {doc.fileUrl ? (
+                    <div className="flex gap-2">
+                      <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="file-link" title="Просмотреть">
+                        <Eye size={14} />
+                      </a>
+                      <a href={doc.fileUrl} download className="file-link" title="Скачать">
+                        <Download size={14} />
+                      </a>
+                    </div>
+                  ) : (
+                    <span style={{ fontSize: 12, color: "var(--text-muted)" }}>—</span>
+                  )}
+                </td>
+              </ClickableRow>
+            ))}
+          </tbody>
+        </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4">
+          {page > 1 ? (
+            <Link href={buildQuery({ page: String(page - 1) })} className="btn">
+              <ChevronLeft size={16} />
+              Назад
+            </Link>
+          ) : (
+            <span className="btn opacity-50 cursor-not-allowed">
+              <ChevronLeft size={16} />
+              Назад
+            </span>
+          )}
+          <span className="text-sm" style={{ color: "var(--text-muted)" }}>Страница {page} из {totalPages}</span>
+          {page < totalPages ? (
+            <Link href={buildQuery({ page: String(page + 1) })} className="btn">
+              Вперёд
+              <ChevronRight size={16} />
+            </Link>
+          ) : (
+            <span className="btn opacity-50 cursor-not-allowed">
+              Вперёд
+              <ChevronRight size={16} />
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -72,12 +72,8 @@ export default async function VersionDetailPage({ params }: { params: Promise<{ 
           {canRestore && (
             <form action={async () => {
               "use server";
-              const session = await auth();
-              if (!session?.user) return;
-              await prisma.internalDocument.update({
-                where: { id: version.documentId },
-                data: { content: version.content },
-              });
+              const { restoreVersion } = await import("@/actions/documents");
+              await restoreVersion(version.documentId, version.content || "");
             }}>
               <button type="submit" className="btn mt-4">
                 <RotateCcw className="w-4 h-4" />

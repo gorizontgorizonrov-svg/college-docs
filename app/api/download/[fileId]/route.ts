@@ -48,7 +48,7 @@ export async function GET(
         "Content-Type": attachment.mimeType,
         "Content-Disposition": `attachment; filename="${asciiName}"; filename*=UTF-8''${encodedName}`,
         "Content-Length": String(buffer.length),
-        "Cache-Control": "private, max-age=3600",
+        "Cache-Control": "private, max-age=2592000, immutable",
       },
     });
   } catch (error) {

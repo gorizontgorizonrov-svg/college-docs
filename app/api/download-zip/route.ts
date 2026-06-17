@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { ZipArchive } from "archiver";
 import { createWriteStream, existsSync } from "fs";
-import { mkdir, readFile, unlink } from "fs/promises";
+import { mkdir, readFile } from "fs/promises";
 import { join } from "path";
 
 export async function POST(request: NextRequest) {
@@ -84,10 +84,6 @@ export async function POST(request: NextRequest) {
         comment: `ZIP (${files.length} файлов)`,
       },
     });
-
-    setTimeout(async () => {
-      try { await unlink(zipPath); } catch {}
-    }, 60 * 60 * 1000);
 
     const buffer = await readFile(zipPath);
     return new NextResponse(buffer, {

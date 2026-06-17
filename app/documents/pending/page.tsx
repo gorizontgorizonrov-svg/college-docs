@@ -16,54 +16,50 @@ export default async function PendingPage() {
   const pending = await getPendingApprovals(session.user.id);
 
   return (
-    <div className="min-h-screen ">
-      <div className="w-full px-4 md:px-6 lg:px-8 py-6 space-y-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">На согласовании</h1>
+    <div className="anim-fade-in space-y-4">
+      <h1 className="doc-h1">На согласовании</h1>
 
-        {pending.length === 0 ? (
-          <div className="card p-12 text-center">
-            <Clock className="w-16 h-16 text-[var(--text-muted)] mx-auto mb-4" />
-            <p className="text-[var(--text-muted)] text-lg">Нет документов, ожидающих решения</p>
-          </div>
-        ) : (
-          <div className="card p-0 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className=" border-b border-[var(--border-subtle)]">
-                  <tr>
-                    <th className="text-left px-4 py-3 text-sm font-medium text-[var(--text-muted)]">Тип</th>
-                    <th className="text-left px-4 py-3 text-sm font-medium text-[var(--text-muted)]">Название</th>
-                    <th className="text-left px-4 py-3 text-sm font-medium text-[var(--text-muted)]">Автор</th>
-                    <th className="text-left px-4 py-3 text-sm font-medium text-[var(--text-muted)]">Дата</th>
-                    <th className="text-left px-4 py-3 text-sm font-medium text-[var(--text-muted)]">Этап</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--border-subtle)]">
-                  {pending.map((a) => (
-                    <ClickableRow key={a.id} href={`/documents/${a.document.id}`} className="hover:bg-[var(--bg-secondary)]">
-                      <td className="px-4 py-3 text-sm text-[var(--text-muted)]">{typeLabels[a.document.type] || a.document.type}</td>
-                      <td className="px-4 py-3 font-medium text-[var(--accent)]">{a.document.title}</td>
-                      <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
-                        {a.document.author.employee
-                          ? `${a.document.author.employee.lastName} ${a.document.author.employee.firstName}`
-                          : "—"}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-[var(--text-muted)]">
-                        {new Date(a.document.createdAt).toLocaleDateString("ru-RU")}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="badge-warning px-2 py-1 text-xs rounded-full">
-                          Этап {a.stage?.stageOrder || "—"}
-                        </span>
-                      </td>
-                    </ClickableRow>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </div>
+      {pending.length === 0 ? (
+        <div className="empty-state">
+          <Clock size={32} style={{ color: "var(--text-muted)", marginBottom: 10, display: "block", margin: "0 auto 10px" }} />
+          <p>Нет документов, ожидающих решения</p>
+        </div>
+      ) : (
+        <div className="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Тип</th>
+                <th>Название</th>
+                <th>Автор</th>
+                <th>Дата</th>
+                <th>Этап</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pending.map((a) => (
+                <ClickableRow key={a.id} href={`/documents/${a.document.id}`}>
+                  <td>{typeLabels[a.document.type] || a.document.type}</td>
+                  <td className="font-medium" style={{ color: "var(--accent)" }}>{a.document.title}</td>
+                  <td>
+                    {a.document.author.employee
+                      ? `${a.document.author.employee.lastName} ${a.document.author.employee.firstName}`
+                      : "—"}
+                  </td>
+                  <td style={{ color: "var(--text-muted)" }}>
+                    {new Date(a.document.createdAt).toLocaleDateString("ru-RU")}
+                  </td>
+                  <td>
+                    <span className="badge badge-warning">
+                      Этап {a.stage?.stageOrder || "—"}
+                    </span>
+                  </td>
+                </ClickableRow>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

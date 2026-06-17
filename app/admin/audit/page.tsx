@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-
+import type { AuditAction } from "@prisma/client";
 
 const actionLabels: Record<string, string> = {
   CREATE: "Создание", EDIT: "Редактирование", DELETE: "Удаление",
@@ -24,20 +24,18 @@ export default async function AuditPage({
   const limit = 50;
   const offset = (page - 1) * limit;
 
-  const logsFilter: Record<string, string> = {};
-  if (params.action) logsFilter.action = params.action;
-  if (params.userId) logsFilter.userId = params.userId;
+  const where: Record<string, unknown> = {};
+  if (params.action) where.action = params.action as AuditAction;
+  if (params.userId) where.userId = params.userId;
 
-  const rawLogs: Array<Record<string, any>> = await (prisma as any).auditLog.findMany({
-    where: logsFilter,
+  const rawLogs: any[] = await (prisma.auditLog.findMany as any)({
+    where,
     include: { user: { include: { employee: true } } },
     orderBy: { createdAt: "desc" },
     skip: offset,
     take: limit,
   });
-  const total: number = await (prisma as any).auditLog.count({
-    where: logsFilter,
-  });
+  const total = await prisma.auditLog.count({ where });
 
   const users = await prisma.user.findMany({
     include: { employee: true },
@@ -47,87 +45,83 @@ export default async function AuditPage({
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <div className="min-h-screen ">
-      <div className="w-full px-4 md:px-6 lg:px-8 py-6 space-y-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">Журнал аудита</h1>
+    <div className="anim-fade-in space-y-4">
+      <h1 className="doc-h1">Журнал аудита</h1>
 
-        <form className="flex flex-col md:flex-row gap-3">
-          <select name="action" defaultValue={params.action || ""} className="select md:w-48">
-            <option value="">Все действия</option>
-            {Object.entries(actionLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-          <select name="userId" defaultValue={params.userId || ""} className="select md:w-48">
-            <option value="">Все пользователи</option>
-            {users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.employee ? `${u.employee.lastName} ${u.employee.firstName}` : u.email}
-              </option>
+      <form className="flex flex-col md:flex-row gap-3">
+        <select name="action" defaultValue={params.action || ""} className="select md:w-48">
+          <option value="">Все действия</option>
+          {Object.entries(actionLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+        </select>
+        <select name="userId" defaultValue={params.userId || ""} className="select md:w-48">
+          <option value="">Все пользователи</option>
+          {users.map((u) => (
+            <option key={u.id} value={u.id}>
+              {u.employee ? `${u.employee.lastName} ${u.employee.firstName}` : u.email}
+            </option>
+          ))}
+        </select>
+        <button type="submit" className="btn">Фильтр</button>
+      </form>
+
+      <p className="text-sm" style={{ color: "var(--text-muted)" }}>Записей: {total}</p>
+
+      <div className="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Дата</th>
+              <th>Пользователь</th>
+              <th>Действие</th>
+              <th>Сущность</th>
+              <th>Детали</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rawLogs.map((log) => (
+              <tr key={log.id}>
+                <td className="whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
+                  {new Date(log.createdAt).toLocaleDateString("ru-RU", {
+                    day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+                  })}
+                </td>
+                <td>
+                  {log.user.employee
+                    ? `${log.user.employee.lastName} ${log.user.employee.firstName}`
+                    : log.user.email}
+                </td>
+                <td>
+                  <span className="badge badge-info">
+                    {actionLabels[log.action] || log.action}
+                  </span>
+                </td>
+                <td>
+                  {log.entityType} #{log.entityId?.slice(0, 8)}
+                </td>
+                <td style={{ color: "var(--text-muted)" }}>
+                  {log.oldStatus && log.newStatus
+                    ? `${log.oldStatus} → ${log.newStatus}`
+                    : log.comment || "—"}
+                </td>
+              </tr>
             ))}
-          </select>
-          <button type="submit" className="btn">Фильтр</button>
-        </form>
-
-        <p className="text-sm text-[var(--text-muted)]">Записей: {total}</p>
-
-        <div className="card p-0 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className=" border-b border-[var(--border-subtle)]">
-                <tr>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-[var(--text-muted)]">Дата</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-[var(--text-muted)]">Пользователь</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-[var(--text-muted)]">Действие</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-[var(--text-muted)]">Сущность</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-[var(--text-muted)]">Детали</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border-subtle)]">
-                  {rawLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-[var(--bg-secondary)]">
-                    <td className="px-4 py-3 text-sm text-[var(--text-muted)] whitespace-nowrap">
-                      {new Date(log.createdAt).toLocaleDateString("ru-RU", {
-                        day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
-                      })}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
-                      {log.user.employee
-                        ? `${log.user.employee.lastName} ${log.user.employee.firstName}`
-                        : log.user.email}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="badge-info px-2 py-1 text-xs rounded-full">
-                        {actionLabels[log.action] || log.action}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
-                      {log.entityType} #{log.entityId?.slice(0, 8)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-[var(--text-muted)]">
-                      {log.oldStatus && log.newStatus
-                        ? `${log.oldStatus} → ${log.newStatus}`
-                        : log.comment || "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-4">
-            {page > 1 && (
-              <a href={`?page=${page - 1}${params.action ? `&action=${params.action}` : ""}${params.userId ? `&userId=${params.userId}` : ""}`}
-                className="btn">Назад</a>
-            )}
-            <span className="text-sm text-[var(--text-muted)]">{page} / {totalPages}</span>
-            {page < totalPages && (
-              <a href={`?page=${page + 1}${params.action ? `&action=${params.action}` : ""}${params.userId ? `&userId=${params.userId}` : ""}`}
-                className="btn">Вперёд</a>
-            )}
-          </div>
-        )}
+          </tbody>
+        </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4">
+          {page > 1 && (
+            <a href={`?page=${page - 1}${params.action ? `&action=${params.action}` : ""}${params.userId ? `&userId=${params.userId}` : ""}`}
+              className="btn">Назад</a>
+          )}
+          <span className="text-sm" style={{ color: "var(--text-muted)" }}>{page} / {totalPages}</span>
+          {page < totalPages && (
+            <a href={`?page=${page + 1}${params.action ? `&action=${params.action}` : ""}${params.userId ? `&userId=${params.userId}` : ""}`}
+              className="btn">Вперёд</a>
+          )}
+        </div>
+      )}
     </div>
   );
 }

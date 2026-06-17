@@ -83,9 +83,8 @@ export default function CreateDocumentPage() {
 
   if (createdDocId) {
     return (
-      <div className="min-h-screen ">
-        <div className="w-full px-4 md:px-6 lg:px-8 py-6 max-w-lg mx-auto">
-          <div className="card p-8 text-center space-y-6">
+      <div className="anim-fade-in">
+        <div className="card p-8 text-center space-y-6" style={{ maxWidth: 480, margin: "0 auto" }}>
             <div className="w-16 h-16 bg-[var(--success)]/10 rounded-full flex items-center justify-center mx-auto">
               <Save className="w-8 h-8 text-[var(--success)]" />
             </div>
@@ -109,15 +108,13 @@ export default function CreateDocumentPage() {
                 Остаться в черновике
               </button>
             </div>
-          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen ">
-      <div className="w-full px-4 md:px-6 lg:px-8 py-6">
+    <div className="anim-fade-in">
         <div className="flex items-center gap-4 mb-6">
           <Link href="/documents" className="w-10 h-10 flex items-center justify-center rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:bg-[var(--bg-secondary)]">
             <ArrowLeft className="w-5 h-5 text-[var(--text-muted)]" />
@@ -183,7 +180,6 @@ export default function CreateDocumentPage() {
               </button>
             </div>
           </form>
-        </div>
       </div>
     </div>
   );

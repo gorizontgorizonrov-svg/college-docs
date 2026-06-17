@@ -54,7 +54,7 @@ export async function GET(
       headers: {
         "Content-Type": mimeType,
         "Content-Disposition": `inline; filename="${asciiName}"; filename*=UTF-8''${encodedName}`,
-        "Cache-Control": "private, max-age=3600",
+        "Cache-Control": "private, max-age=2592000, immutable",
       },
     });
   } catch (error) {

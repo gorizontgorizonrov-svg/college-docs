@@ -3,7 +3,10 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getProfile } from "@/actions/profile";
 import { prisma } from "@/lib/prisma";
-import { User, Mail, Calendar, FileText, Clock, CheckCircle, Send, Bell, Edit3, Activity, Briefcase, Building } from "lucide-react";
+import {
+  User, Mail, Calendar, FileText, Clock, CheckCircle, Send,
+  Bell, Edit3, Activity, Briefcase, Building, ArrowRight,
+} from "lucide-react";
 
 const roleLabels: Record<string, string> = {
   INITIATOR: "Инициатор", VALIDATOR: "Согласующий",
@@ -20,7 +23,7 @@ export default async function ProfilePage() {
   if (!session?.user) redirect("/login");
 
   const profile = await getProfile(session.user.id);
-  if (!profile) return <div className="p-8 text-center text-[var(--text-muted)]">Профиль не найден</div>;
+  if (!profile) return <div className="empty-state"><p>Профиль не найден</p></div>;
 
   const recentActivity = await prisma.auditLog.findMany({
     where: { userId: session.user.id },
@@ -29,181 +32,199 @@ export default async function ProfilePage() {
   });
 
   return (
-    <div className="min-h-screen ">
-      <div className="w-full max-w-5xl mx-auto px-4 md:px-6 lg:px-8 py-6 space-y-6">
-        {/* Шапка профиля */}
-        <div className="card p-6 md:p-8">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-            <div className="w-20 h-20 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center shrink-0">
-              <User className="w-10 h-10 text-[var(--accent)]" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">
-                  {profile.employee
-                    ? `${profile.employee.lastName} ${profile.employee.firstName} ${profile.employee.middleName || ""}`
-                    : "Пользователь"}
-                </h1>
-                <span className={`px-3 py-1 text-xs rounded-full ${roleColors[profile.user.role] || "badge-neutral"}`}>
-                  {roleLabels[profile.user.role] || profile.user.role}
+    <div className="anim-fade-in space-y-4">
+      {/* Шапка профиля */}
+      <div className="profile-banner">
+        <div className="pb-av">
+          {profile.employee
+            ? (profile.employee.firstName?.[0] || "") + (profile.employee.lastName?.[0] || "")
+            : "?"}
+        </div>
+        <div className="pb-info">
+          <div className="pb-name">
+            {profile.employee
+              ? `${profile.employee.lastName} ${profile.employee.firstName} ${profile.employee.middleName || ""}`
+              : "Пользователь"}
+            <span className={`badge ${roleColors[profile.user.role] || "badge-neutral"}`} style={{ marginLeft: 10, verticalAlign: "middle" }}>
+              {roleLabels[profile.user.role] || profile.user.role}
+            </span>
+          </div>
+          <div className="pb-role">
+            {profile.employee?.position && <><Briefcase size={12} style={{ verticalAlign: -1 }} /> {profile.employee.position} <span>·</span></>}
+            {profile.employee?.department && <><Building size={12} style={{ verticalAlign: -1 }} /> {profile.employee.department} <span>·</span></>}
+            <Mail size={12} style={{ verticalAlign: -1 }} /> {profile.user.email}
+            <span>·</span>
+            <Calendar size={12} style={{ verticalAlign: -1 }} /> С {new Date(profile.user.createdAt).toLocaleDateString("ru-RU")}
+          </div>
+        </div>
+        <div className="pb-actions">
+          <Link href="/settings" className="btn">
+            <Edit3 size={16} />
+            Редактировать
+          </Link>
+        </div>
+      </div>
+
+      {/* Статистика */}
+      <div className="stat-tabs">
+        <div className="stab">
+          <div className="stab-header">
+            <div className="stab-icon ic-blue"><FileText size={14} /></div>
+            <span className="stab-lbl">Всего документов</span>
+          </div>
+          <div className="stab-val">{profile.stats.totalDocuments}</div>
+        </div>
+        <div className="stab">
+          <div className="stab-header">
+            <div className="stab-icon ic-purple"><Send size={14} /></div>
+            <span className="stab-lbl">На согласовании</span>
+          </div>
+          <div className="stab-val">{profile.stats.inApproval}</div>
+        </div>
+        <div className="stab">
+          <div className="stab-header">
+            <div className="stab-icon ic-green"><CheckCircle size={14} /></div>
+            <span className="stab-lbl">Утверждено</span>
+          </div>
+          <div className="stab-val">{profile.stats.approved}</div>
+        </div>
+        <div className="stab">
+          <div className="stab-header">
+            <div className="stab-icon ic-amber"><Bell size={14} /></div>
+            <span className="stab-lbl">Уведомлений</span>
+          </div>
+          <div className="stab-val">{profile.stats.unreadNotifications}</div>
+        </div>
+      </div>
+
+      <div className="grid2">
+        {/* Личные данные */}
+        <div className="card">
+          <div className="ch">
+            <div className="ch-l"><User size={14} />Личные данные</div>
+          </div>
+          <div className="cb">
+            <div className="mg">
+              <div className="mf">
+                <label>Фамилия</label>
+                <span>{profile.employee?.lastName || "—"}</span>
+              </div>
+              <div className="mf">
+                <label>Имя</label>
+                <span>{profile.employee?.firstName || "—"}</span>
+              </div>
+              <div className="mf">
+                <label>Отчество</label>
+                <span>{profile.employee?.middleName || "—"}</span>
+              </div>
+              <div className="mf">
+                <label>Должность</label>
+                <span>{profile.employee?.position || "—"}</span>
+              </div>
+              <div className="mf">
+                <label>Отдел</label>
+                <span>{profile.employee?.department || "—"}</span>
+              </div>
+              <div className="mf">
+                <label>Email</label>
+                <span>{profile.user.email}</span>
+              </div>
+              <div className="mf">
+                <label>Роль</label>
+                <span>{roleLabels[profile.user.role] || profile.user.role}</span>
+              </div>
+              <div className="mf">
+                <label>Статус</label>
+                <span className={`badge ${profile.user.isActive ? "badge-success" : "badge-danger"}`}>
+                  {profile.user.isActive ? "Активен" : "Заблокирован"}
                 </span>
               </div>
-              <div className="flex flex-wrap gap-4 mt-3 text-sm text-[var(--text-muted)]">
-                {profile.employee?.position && (
-                  <span className="flex items-center gap-1.5">
-                    <Briefcase className="w-4 h-4" />
-                    {profile.employee.position}
-                  </span>
-                )}
-                {profile.employee?.department && (
-                  <span className="flex items-center gap-1.5">
-                    <Building className="w-4 h-4" />
-                    {profile.employee.department}
-                  </span>
-                )}
-                <span className="flex items-center gap-1.5">
-                  <Mail className="w-4 h-4" />
-                  {profile.user.email}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4" />
-                  На сайте с {new Date(profile.user.createdAt).toLocaleDateString("ru-RU")}
-                </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Последние действия */}
+        <div className="card">
+          <div className="ch">
+            <div className="ch-l"><Activity size={14} />Последние действия</div>
+          </div>
+          <div className="cb">
+            {recentActivity.length === 0 ? (
+              <div className="empty-state" style={{ padding: "20px 10px" }}>
+                <p>Нет действий</p>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Статистика */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="card p-4 text-center">
-            <FileText className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-[var(--text-primary)]">{profile.stats.totalDocuments}</p>
-            <p className="text-xs text-[var(--text-muted)]">Всего документов</p>
-          </div>
-          <div className="card p-4 text-center">
-            <Send className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-[var(--text-primary)]">{profile.stats.inApproval}</p>
-            <p className="text-xs text-[var(--text-muted)]">На согласовании</p>
-          </div>
-          <div className="card p-4 text-center">
-            <CheckCircle className="w-6 h-6 text-emerald-400 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-[var(--text-primary)]">{profile.stats.approved}</p>
-            <p className="text-xs text-[var(--text-muted)]">Утверждено</p>
-          </div>
-          <div className="card p-4 text-center">
-            <Bell className="w-6 h-6 text-amber-400 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-[var(--text-primary)]">{profile.stats.unreadNotifications}</p>
-            <p className="text-xs text-[var(--text-muted)]">Уведомлений</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Информация о сотруднике */}
-          <div className="card p-6">
-            <h2 className="font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
-              <User className="w-5 h-5 text-[var(--accent)]" />
-              Личные данные
-            </h2>
-            <div className="space-y-3 text-sm">
-              {[
-                { label: "Фамилия", value: profile.employee?.lastName || "—" },
-                { label: "Имя", value: profile.employee?.firstName || "—" },
-                { label: "Отчество", value: profile.employee?.middleName || "—" },
-                { label: "Должность", value: profile.employee?.position || "—" },
-                { label: "Отдел", value: profile.employee?.department || "—" },
-                { label: "Email", value: profile.user.email },
-                { label: "Роль в системе", value: roleLabels[profile.user.role] || profile.user.role },
-                { label: "Статус", value: profile.user.isActive ? "Активен" : "Заблокирован" },
-              ].map((item) => (
-                <div key={item.label} className="flex justify-between py-1.5 border-b border-[var(--border-subtle)] last:border-0">
-                  <span className="text-[var(--text-muted)]">{item.label}</span>
-                  <span className="font-medium text-[var(--text-primary)] text-right">{item.value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Последние действия */}
-          <div className="card p-6">
-            <h2 className="font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
-              <Activity className="w-5 h-5 text-[var(--accent)]" />
-              Последние действия
-            </h2>
-            <div className="space-y-2">
-              {recentActivity.length === 0 ? (
-                <p className="text-sm text-[var(--text-muted)]">Нет действий</p>
-              ) : (
-                recentActivity.map((log) => {
-                  const actionLabels: Record<string, string> = {
-                    CREATE: "Создал(а)", EDIT: "Редактировал(а)", DELETE: "Удалил(а)",
-                    APPROVE: "Согласовал(а)", REJECT: "Отклонил(а)", RETURN: "Вернул(а)",
-                    SIGN: "Подписал(а)", REGISTER: "Зарегистрировал(а)",
-                    ARCHIVE: "Архивировал(а)", LOGIN: "Вошёл(ла)", DOWNLOAD: "Скачал(а)",
-                  };
-                  const entityLabels: Record<string, string> = {
-                    InternalDocument: "документ", IncomingDocument: "входящий",
-                    DocumentApproval: "согласование", DigitalSignature: "подпись",
-                  };
-                  return (
-                    <div key={log.id} className="flex items-start gap-3 p-2.5 rounded-xl bg-[var(--bg-secondary)]">
-                      <div className="w-7 h-7 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shrink-0 mt-0.5">
-                        <Activity className="w-3.5 h-3.5 text-[var(--accent)]" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm text-[var(--text-primary)]">
-                          {actionLabels[log.action] || log.action} {entityLabels[log.entityType] || log.entityType}
-                        </p>
-                        <p className="text-xs text-[var(--text-muted)]">
-                          {new Date(log.createdAt).toLocaleDateString("ru-RU", {
-                            day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Ожидают решения */}
-        {(profile.user.role === "VALIDATOR" || profile.user.role === "SIGNER" || profile.user.role === "ADMIN") && (
-          <div className="card p-6">
-            <h2 className="font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-[var(--accent)]" />
-              Ожидают решения
-            </h2>
-            {profile.stats.pendingApprovals > 0 ? (
-              <Link href="/documents/pending" className="inline-flex items-center gap-2 text-sm text-[var(--accent)] hover:underline">
-                {profile.stats.pendingApprovals} документ(ов) на согласовании →
-              </Link>
             ) : (
-              <p className="text-sm text-[var(--text-muted)]">Нет ожидающих документов</p>
+              recentActivity.map((log) => {
+                const actionLabels: Record<string, string> = {
+                  CREATE: "создал(а)", EDIT: "редактировал(а)", DELETE: "удалил(а)",
+                  APPROVE: "согласовал(а)", REJECT: "отклонил(а)", RETURN: "вернул(а)",
+                  SIGN: "подписал(а)", REGISTER: "зарегистрировал(а)",
+                  ARCHIVE: "архивировал(а)", LOGIN: "вошёл(ла)", DOWNLOAD: "скачал(а)",
+                };
+                const entityLabels: Record<string, string> = {
+                  InternalDocument: "документ", IncomingDocument: "входящий",
+                  DocumentApproval: "согласование", DigitalSignature: "подпись",
+                };
+                return (
+                  <div key={log.id} className="act-item">
+                    <div className="act-av">
+                      {profile.employee?.firstName?.[0] || "?"}
+                    </div>
+                    <div className="act-text">
+                      <b>{profile.employee?.firstName || "Пользователь"}</b>{" "}
+                      {actionLabels[log.action] || log.action}{" "}
+                      {entityLabels[log.entityType] || log.entityType}
+                    </div>
+                    <div className="act-time">
+                      {new Date(log.createdAt).toLocaleDateString("ru-RU", {
+                        day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+                      })}
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
-        )}
-
-        {/* Быстрые ссылки */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Link href="/documents" className="card p-4 text-center hover:border-[var(--accent)]/30 transition-colors">
-            <FileText className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-            <p className="text-sm font-medium text-[var(--text-primary)]">Мои документы</p>
-          </Link>
-          <Link href="/documents/create" className="card p-4 text-center hover:border-[var(--accent)]/30 transition-colors">
-            <Edit3 className="w-6 h-6 text-green-400 mx-auto mb-2" />
-            <p className="text-sm font-medium text-[var(--text-primary)]">Создать документ</p>
-          </Link>
-          <Link href="/archive" className="card p-4 text-center hover:border-[var(--accent)]/30 transition-colors">
-            <FileText className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-            <p className="text-sm font-medium text-[var(--text-primary)]">Архив</p>
-          </Link>
-          <Link href="/dashboard" className="card p-4 text-center hover:border-[var(--accent)]/30 transition-colors">
-            <Activity className="w-6 h-6 text-amber-400 mx-auto mb-2" />
-            <p className="text-sm font-medium text-[var(--text-primary)]">Дашборд</p>
-          </Link>
         </div>
+      </div>
+
+      {/* Ожидают решения */}
+      {(profile.user.role === "VALIDATOR" || profile.user.role === "SIGNER" || profile.user.role === "ADMIN") && (
+        <div className="card" style={{ padding: "10px 14px" }}>
+          <div className="act-item" style={{ border: "none", padding: 0 }}>
+            <div className="act-av ic-purple"><Clock size={12} /></div>
+            <div className="act-text">
+              {profile.stats.pendingApprovals > 0
+                ? <><b>{profile.stats.pendingApprovals}</b> документ(ов) на согласовании</>
+                : "Нет ожидающих документов"}
+            </div>
+            {profile.stats.pendingApprovals > 0 && (
+              <Link href="/documents/pending" className="btn btn-navy" style={{ fontSize: 10.5, padding: "4px 10px" }}>
+                Перейти <ArrowRight size={12} />
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Быстрые ссылки */}
+      <div className="admin-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
+        <Link href="/documents" className="ag-item">
+          <div className="ag-icon ic-blue"><FileText size={16} /></div>
+          <div className="ag-lbl">Мои документы</div>
+        </Link>
+        <Link href="/documents/create" className="ag-item">
+          <div className="ag-icon ic-green"><Edit3 size={16} /></div>
+          <div className="ag-lbl">Создать документ</div>
+        </Link>
+        <Link href="/archive" className="ag-item">
+          <div className="ag-icon ic-purple"><FileText size={16} /></div>
+          <div className="ag-lbl">Архив</div>
+        </Link>
+        <Link href="/dashboard" className="ag-item">
+          <div className="ag-icon ic-amber"><Activity size={16} /></div>
+          <div className="ag-lbl">Дашборд</div>
+        </Link>
       </div>
     </div>
   );

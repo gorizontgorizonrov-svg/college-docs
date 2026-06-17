@@ -65,8 +65,7 @@ export default function RegisterIncomingPage() {
   };
 
   return (
-    <div className="min-h-screen ">
-      <div className="w-full px-4 md:px-6 lg:px-8 py-6 max-w-3xl space-y-6">
+    <div className="anim-fade-in">
         <div className="flex items-center gap-4">
           <Link href="/incoming" className="w-10 h-10 flex items-center justify-center rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)]">
             <ArrowLeft className="w-5 h-5 text-[var(--text-muted)]" />
@@ -132,7 +131,6 @@ export default function RegisterIncomingPage() {
             {isSubmitting ? "Сохранение..." : "Зарегистрировать"}
           </button>
         </form>
-      </div>
     </div>
   );
 }
