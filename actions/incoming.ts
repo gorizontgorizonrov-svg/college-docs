@@ -23,7 +23,7 @@ export async function registerIncoming(data: {
   };
 }) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
+  if (!session?.user) return { error: "Не авторизован", id: null };
 
   const doc = await prisma.$transaction(async (tx) => {
     const d = await tx.incomingDocument.create({
@@ -67,7 +67,7 @@ export async function registerIncoming(data: {
   });
 
   revalidatePath("/incoming");
-  return doc;
+  return { error: null, id: doc.id };
 }
 
 export async function setResolution(
@@ -77,7 +77,7 @@ export async function setResolution(
   deadline: string
 ) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
+  if (!session?.user) return { error: "Не авторизован" };
 
   await prisma.$transaction(async (tx) => {
     const doc = await tx.incomingDocument.update({
@@ -112,6 +112,7 @@ export async function setResolution(
   });
 
   revalidatePath("/incoming");
+  return { error: null, success: true };
 }
 
 export async function getIncomingList(filters?: {
@@ -159,7 +160,7 @@ export async function getIncomingById(id: string) {
 
 export async function sendToArchive(id: string) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
+  if (!session?.user) return { error: "Не авторизован" };
 
   await prisma.$transaction(async (tx) => {
     await tx.incomingDocument.update({
@@ -178,11 +179,12 @@ export async function sendToArchive(id: string) {
   });
 
   revalidatePath("/incoming");
+  return { error: null, success: true };
 }
 
 export async function markExecuted(id: string) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
+  if (!session?.user) return { error: "Не авторизован" };
 
   const doc = await prisma.$transaction(async (tx) => {
     const d = await tx.incomingDocument.update({
@@ -203,5 +205,5 @@ export async function markExecuted(id: string) {
   });
 
   revalidatePath("/incoming");
-  return doc;
+  return { error: null, id: doc.id };
 }

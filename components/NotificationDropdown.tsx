@@ -28,12 +28,16 @@ export function NotificationDropdown() {
     if (!session?.user?.id) return;
 
     const fetchNotifications = async () => {
-      const [notifs, count] = await Promise.all([
-        getMyNotifications(session.user.id),
-        getUnreadCount(session.user.id),
-      ]);
-      setNotifications(notifs as any);
-      setUnreadCount(count);
+      try {
+        const [notifs, count] = await Promise.all([
+          getMyNotifications(session.user.id),
+          getUnreadCount(session.user.id),
+        ]);
+        setNotifications(notifs as any);
+        setUnreadCount(count);
+      } catch {
+        // silently fail
+      }
     };
 
     fetchNotifications();

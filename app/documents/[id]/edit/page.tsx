@@ -142,13 +142,15 @@ export default function EditDocumentPage() {
         }
       }
 
-      await updateDocument(params.id, {
+      const result = await updateDocument(params.id, {
         title: data.title,
         content: data.content,
         fileUrl,
         changeNote: data.changeNote,
         fileInfo,
       });
+
+      if (result.error) throw new Error(result.error);
 
       router.push(`/documents/${params.id}`);
       router.refresh();

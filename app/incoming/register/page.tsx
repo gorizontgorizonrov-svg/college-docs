@@ -52,10 +52,13 @@ export default function RegisterIncomingPage() {
             mimeType: json.mimeType,
             fileSize: json.fileSize,
           };
+        } else {
+          throw new Error(json.error || "Ошибка загрузки файла");
         }
       }
 
-      await registerIncoming({ ...data, fileUrl, fileInfo });
+      const result = await registerIncoming({ ...data, fileUrl, fileInfo });
+      if (result.error) throw new Error(result.error);
       router.push("/incoming");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Ошибка");

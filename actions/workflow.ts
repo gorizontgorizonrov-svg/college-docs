@@ -12,7 +12,7 @@ export async function submitApproval(
   comment?: string
 ) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
+  if (!session?.user) return { error: "Не авторизован" };
 
   let approval = null;
   try {
@@ -48,8 +48,8 @@ export async function submitApproval(
       },
     });
   }
-  if (!approval) throw new Error("Запись согласования не найдена");
-  if (approval.approverId !== session.user.id) throw new Error("Нет доступа");
+  if (!approval) return { error: "Запись согласования не найдена" };
+  if (approval.approverId !== session.user.id) return { error: "Нет доступа" };
 
   const doc = approval.document;
 
@@ -133,21 +133,22 @@ export async function submitApproval(
   });
 
   revalidatePath(`/documents/${doc.id}`);
+  return { error: null, success: true };
 }
 
 export async function submitSignature(approvalId: string) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
+  if (!session?.user) return { error: "Не авторизован", signature: null };
 
   const approval = await prisma.documentApproval.findUnique({
     where: { id: approvalId },
     include: { document: true },
   });
-  if (!approval) throw new Error("Запись согласования не найдена");
-  if (approval.approverId !== session.user.id) throw new Error("Нет доступа");
+  if (!approval) return { error: "Запись согласования не найдена", signature: null };
+  if (approval.approverId !== session.user.id) return { error: "Нет доступа", signature: null };
 
   const employee = await prisma.employee.findUnique({ where: { userId: session.user.id } });
-  if (!employee) throw new Error("Профиль сотрудника не найден");
+  if (!employee) return { error: "Профиль сотрудника не найден", signature: null };
 
   const docHash = await computeDocumentHash(approval.document.content || "");
   const encryptedSig = await signHash(docHash);
@@ -194,13 +195,13 @@ export async function submitSignature(approvalId: string) {
   });
 
   revalidatePath(`/documents/${approval.document.id}`);
-  return signature;
+  return { error: null, signature };
 }
 
 export async function verifySignature(signatureId: string) {
   const { decrypt } = await import("@/lib/crypto");
   const signature = await prisma.digitalSignature.findUnique({ where: { id: signatureId } });
-  if (!signature) throw new Error("Подпись не найдена");
+  if (!signature) return { isValid: false, error: "Подпись не найдена" };
 
   try {
     const decrypted = decrypt(signature.signatureData);
@@ -211,8 +212,8 @@ export async function verifySignature(signatureId: string) {
       data: { isVerified: isValid },
     });
 
-    return isValid;
+    return { isValid };
   } catch {
-    return false;
+    return { isValid: false };
   }
 }

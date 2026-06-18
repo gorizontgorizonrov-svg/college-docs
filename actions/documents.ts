@@ -19,7 +19,7 @@ export async function createDocument(data: {
   };
 }) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
+  if (!session?.user) return { error: "Не авторизован" } as const;
 
   let template = null;
   try {
@@ -92,7 +92,7 @@ export async function createDocument(data: {
   });
 
   revalidatePath("/documents");
-  return doc;
+  return { error: null, ...doc };
 }
 
 export async function getDocumentById(id: string) {
@@ -219,12 +219,12 @@ export async function updateDocument(
   }
 ) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
+  if (!session?.user) return { error: "Не авторизован" };
 
   const doc = await prisma.internalDocument.findUnique({ where: { id } });
-  if (!doc) throw new Error("Документ не найден");
-  if (doc.status !== "DRAFT") throw new Error("Редактировать можно только черновик");
-  if (doc.authorId !== session.user.id) throw new Error("Нет доступа");
+  if (!doc) return { error: "Документ не найден" };
+  if (doc.status !== "DRAFT") return { error: "Редактировать можно только черновик" };
+  if (doc.authorId !== session.user.id) return { error: "Нет доступа" };
 
   await prisma.$transaction(async (tx) => {
     const currentVersion = await tx.documentVersion.count({ where: { documentId: id } });
@@ -279,16 +279,17 @@ export async function updateDocument(
   });
 
   revalidatePath(`/documents/${id}`);
+  return { error: null, success: true };
 }
 
 export async function deleteDocument(id: string) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
+  if (!session?.user) return { error: "Не авторизован" };
 
   const doc = await prisma.internalDocument.findUnique({ where: { id } });
-  if (!doc) throw new Error("Документ не найден");
-  if (doc.status !== "DRAFT") throw new Error("Удалить можно только черновик");
-  if (doc.authorId !== session.user.id) throw new Error("Нет доступа");
+  if (!doc) return { error: "Документ не найден" };
+  if (doc.status !== "DRAFT") return { error: "Удалить можно только черновик" };
+  if (doc.authorId !== session.user.id) return { error: "Нет доступа" };
 
   await prisma.internalDocument.delete({ where: { id } });
 
@@ -302,11 +303,12 @@ export async function deleteDocument(id: string) {
   });
 
   revalidatePath("/documents");
+  return { error: null, success: true };
 }
 
 export async function sendToWorkflow(id: string) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
+  if (!session?.user) return { error: "Не авторизован", number: null };
 
   let doc = null;
   try {
@@ -330,8 +332,8 @@ export async function sendToWorkflow(id: string) {
       },
     });
   }
-  if (!doc) throw new Error("Документ не найден");
-  if (doc.status !== "DRAFT") throw new Error("Документ уже отправлен");
+  if (!doc) return { error: "Документ не найден", number: null };
+  if (doc.status !== "DRAFT") return { error: "Документ уже отправлен", number: null };
 
   const docNumber = await prisma.$transaction(async (tx) => {
     const year = new Date().getFullYear();
@@ -372,7 +374,7 @@ export async function sendToWorkflow(id: string) {
   });
 
   revalidatePath(`/documents/${id}`);
-  return { number: docNumber };
+  return { error: null, number: docNumber };
 }
 
 export async function addVersion(
@@ -398,12 +400,12 @@ export async function addVersion(
 
 export async function restoreVersion(documentId: string, content: string) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
+  if (!session?.user) return { error: "Не авторизован" };
 
   const doc = await prisma.internalDocument.findUnique({ where: { id: documentId } });
-  if (!doc) throw new Error("Документ не найден");
-  if (doc.status !== "DRAFT") throw new Error("Восстановить можно только черновик");
-  if (doc.authorId !== session.user.id) throw new Error("Нет доступа");
+  if (!doc) return { error: "Документ не найден" };
+  if (doc.status !== "DRAFT") return { error: "Восстановить можно только черновик" };
+  if (doc.authorId !== session.user.id) return { error: "Нет доступа" };
 
   await prisma.internalDocument.update({
     where: { id: documentId },
@@ -421,4 +423,5 @@ export async function restoreVersion(documentId: string, content: string) {
   });
 
   revalidatePath(`/documents/${documentId}`);
+  return { error: null, success: true };
 }

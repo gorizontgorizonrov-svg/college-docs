@@ -121,13 +121,14 @@ export default function ProfilePage() {
     setError(null);
     setSuccess(null);
     try {
-      await updateProfile(session!.user.id, data);
+      const result = await updateProfile(session!.user.id, data);
+      if (result.error) { setError(result.error); return; }
       setSuccess("Изменения сохранены");
       await refreshProfile();
       await update();
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка сохранения");
+    } catch {
+      setError("Ошибка сохранения");
     } finally {
       setSaving(false);
     }
@@ -137,11 +138,16 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
     setAvatarUploading(true);
+    setError(null);
     try {
       const fd = new FormData();
       fd.append("avatar", file);
-      await uploadAvatar(fd);
-      await refreshProfile();
+      const result = await uploadAvatar(fd);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        await refreshProfile();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ошибка загрузки аватара");
     } finally {
@@ -154,12 +160,13 @@ export default function ProfilePage() {
     setPasswordError(null);
     setPasswordSuccess(null);
     try {
-      await changePassword(session!.user.id, data.oldPassword, data.newPassword);
+      const result = await changePassword(session!.user.id, data.oldPassword, data.newPassword);
+      if (result.error) { setPasswordError(result.error); return; }
       setPasswordSuccess("Пароль изменён");
       resetPassword();
       setTimeout(() => setPasswordSuccess(null), 3000);
-    } catch (err) {
-      setPasswordError(err instanceof Error ? err.message : "Ошибка смены пароля");
+    } catch {
+      setPasswordError("Ошибка смены пароля");
     } finally {
       setPasswordSaving(false);
     }

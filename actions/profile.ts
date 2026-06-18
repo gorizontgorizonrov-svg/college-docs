@@ -10,7 +10,7 @@ import bcrypt from "bcryptjs";
 
 export async function getProfile(userId: string) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
+  if (!session?.user) return null;
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -37,18 +37,18 @@ export async function updateProfile(
   }
 ) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
-  if (session.user.id !== userId) throw new Error("Нет доступа");
+  if (!session?.user) return { error: "Не авторизован" };
+  if (session.user.id !== userId) return { error: "Нет доступа" };
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: { employee: true },
   });
-  if (!user) throw new Error("Пользователь не найден");
+  if (!user) return { error: "Пользователь не найден" };
 
   if (data.email && data.email !== user.email) {
     const existing = await prisma.user.findUnique({ where: { email: data.email } });
-    if (existing) throw new Error("Email уже используется");
+    if (existing) return { error: "Email уже используется" };
   }
 
   await prisma.$transaction(async (tx) => {
@@ -82,18 +82,18 @@ export async function updateProfile(
   });
 
   revalidatePath("/profile");
-  return { success: true };
+  return { error: null, success: true };
 }
 
 export async function uploadAvatar(formData: FormData) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
+  if (!session?.user) return { error: "Не авторизован" };
 
   const file = formData.get("avatar") as File | null;
-  if (!file) throw new Error("Файл не выбран");
+  if (!file) return { error: "Файл не выбран" };
 
-  if (!file.type.startsWith("image/")) throw new Error("Только изображения");
-  if (file.size > 5 * 1024 * 1024) throw new Error("Максимум 5 МБ");
+  if (!file.type.startsWith("image/")) return { error: "Только изображения" };
+  if (file.size > 5 * 1024 * 1024) return { error: "Максимум 5 МБ" };
 
   const uploadDir = join(process.cwd(), "private", "uploads", "avatars");
   if (!existsSync(uploadDir)) {
@@ -121,7 +121,7 @@ export async function uploadAvatar(formData: FormData) {
   }
 
   revalidatePath("/profile");
-  return { avatarUrl };
+  return { error: null, avatarUrl };
 }
 
 export async function changePassword(
@@ -130,16 +130,16 @@ export async function changePassword(
   newPassword: string
 ) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
-  if (session.user.id !== userId) throw new Error("Нет доступа");
+  if (!session?.user) return { error: "Не авторизован" };
+  if (session.user.id !== userId) return { error: "Нет доступа" };
 
-  if (newPassword.length < 6) throw new Error("Новый пароль минимум 6 символов");
+  if (newPassword.length < 6) return { error: "Новый пароль минимум 6 символов" };
 
   const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user) throw new Error("Пользователь не найден");
+  if (!user) return { error: "Пользователь не найден" };
 
   const isValid = await bcrypt.compare(oldPassword, user.passwordHash || "");
-  if (!isValid) throw new Error("Неверный текущий пароль");
+  if (!isValid) return { error: "Неверный текущий пароль" };
 
   const passwordHash = await bcrypt.hash(newPassword, 10);
   await prisma.user.update({
@@ -157,5 +157,5 @@ export async function changePassword(
     },
   });
 
-  return { success: true };
+  return { error: null, success: true };
 }

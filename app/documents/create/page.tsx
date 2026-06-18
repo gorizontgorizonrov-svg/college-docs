@@ -154,7 +154,7 @@ export default function CreateDocumentPage() {
         }
       }
 
-      const doc = await createDocument({
+      const result = await createDocument({
         title: data.title,
         content: data.content,
         type: data.type as InternalDocType,
@@ -162,7 +162,8 @@ export default function CreateDocumentPage() {
         fileInfo,
       });
 
-      setCreatedDocId(doc.id);
+      if (result.error) throw new Error(result.error);
+      setCreatedDocId(result.id);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Ошибка при создании документа");
     } finally {
@@ -182,7 +183,8 @@ export default function CreateDocumentPage() {
             <button
               onClick={async () => {
                 const { sendToWorkflow } = await import("@/actions/documents");
-                await sendToWorkflow(createdDocId);
+                const result = await sendToWorkflow(createdDocId);
+                if (result.error) { alert(result.error); return; }
                 router.push(`/documents/${createdDocId}`);
               }}
               className="btn btn-primary"

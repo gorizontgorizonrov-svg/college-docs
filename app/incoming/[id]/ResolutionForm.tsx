@@ -24,7 +24,8 @@ export function ResolutionForm({ documentId, employees }: { documentId: string; 
     if (!resolution || !executorId || !deadline) return;
     setIsSubmitting(true);
     try {
-      await setResolution(documentId, resolution, executorId, deadline);
+      const result = await setResolution(documentId, resolution, executorId, deadline);
+      if (result.error) { console.error(result.error); return; }
       router.refresh();
     } catch (err) {
       console.error(err);

@@ -19,7 +19,7 @@ export async function createNotification(
 
 export async function getMyNotifications(userId: string) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
+  if (!session?.user) return [];
 
   return prisma.notification.findMany({
     where: { userId },
@@ -30,17 +30,18 @@ export async function getMyNotifications(userId: string) {
 
 export async function markAsRead(notificationId: string) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
+  if (!session?.user) return { error: "Не авторизован" };
 
-  return prisma.notification.update({
+  await prisma.notification.update({
     where: { id: notificationId },
     data: { isRead: true },
   });
+  return { error: null, success: true };
 }
 
 export async function getUnreadCount(userId: string) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
+  if (!session?.user) return 0;
 
   return prisma.notification.count({
     where: { userId, isRead: false },
@@ -49,10 +50,11 @@ export async function getUnreadCount(userId: string) {
 
 export async function markAllAsRead(userId: string) {
   const session = await auth();
-  if (!session?.user) throw new Error("Не авторизован");
+  if (!session?.user) return { error: "Не авторизован" };
 
   await prisma.notification.updateMany({
     where: { userId, isRead: false },
     data: { isRead: true },
   });
+  return { error: null, success: true };
 }

@@ -20,10 +20,11 @@ export function ApprovalActions({ approvalId, canSign }: ApprovalActionsProps) {
     setIsLoading(true);
     setError(null);
     try {
-      await submitApproval(approvalId, decision, comment);
+      const result = await submitApproval(approvalId, decision, comment);
+      if (result.error) { setError(result.error); return; }
       router.refresh();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Ошибка");
+    } catch {
+      setError("Ошибка");
     } finally {
       setIsLoading(false);
     }
@@ -33,10 +34,11 @@ export function ApprovalActions({ approvalId, canSign }: ApprovalActionsProps) {
     setIsLoading(true);
     setError(null);
     try {
-      await submitSignature(approvalId);
+      const result = await submitSignature(approvalId);
+      if (result.error) { setError(result.error); return; }
       router.refresh();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Ошибка");
+    } catch {
+      setError("Ошибка");
     } finally {
       setIsLoading(false);
     }
