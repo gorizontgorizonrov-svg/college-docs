@@ -21,17 +21,17 @@ export default async function ApprovalPage() {
           <p>Нет документов на подпись</p>
         </div>
       ) : (
-        <div className="anim-stagger" style={{ display: "grid", gap: 8 }}>
+        <div className="anim-stagger" style={{ display: "grid", gap: 10 }}>
           {signable.map((a) => (
-            <Link key={a.id} href={`/documents/${a.document.id}`} className="doc-item">
+            <Link key={a.id} href={`/documents/${a.document.id}`} className="card" style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", cursor: "pointer" }}>
               <div className="doc-ico ic-purple"><IconSignature size={14} /></div>
-              <div className="doc-info">
+              <div className="doc-info" style={{ flex: 1 }}>
                 <div className="doc-type">
                   {new Date(a.document.createdAt).toLocaleDateString("ru-RU")}
                 </div>
                 <div className="doc-name">{a.document.title}</div>
               </div>
-              <IconArrowRight size={14} style={{ color: "var(--text-muted)", flexShrink: 0, marginTop: 4 }} />
+              <IconArrowRight size={14} style={{ color: "var(--text-muted)", flexShrink: 0 }} />
             </Link>
           ))}
         </div>

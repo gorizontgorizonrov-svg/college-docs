@@ -49,3 +49,14 @@ next-env.d.ts
 
 # Windows artifacts
 nul
+~$*
+
+# Document / spec files
+*.docx
+ОТВЕТЫ_*.md
+
+# Scripts
+add_listings.py
+
+# Screenshots
+/screenshots

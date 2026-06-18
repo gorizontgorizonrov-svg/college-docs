@@ -12,6 +12,7 @@
   --accent: #7c3aed;
   --accent-hover: #a78bfa;
   --accent-light: rgba(139, 92, 246, 0.2);
+  --link-hover: #c4b5fd;
   --success: #4ade80;
   --success-bg: rgba(74, 222, 128, 0.1);
   --success-border: rgba(74, 222, 128, 0.2);
@@ -48,6 +49,10 @@
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-muted: #94a3b8;
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+  --accent-light: rgba(139, 92, 246, 0.1);
+  --link-hover: #7c3aed;
   --border: rgba(0, 0, 0, 0.08);
   --border-light: rgba(0, 0, 0, 0.12);
   --border-input: rgba(0, 0, 0, 0.12);
@@ -55,7 +60,7 @@
   --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.1);
   --glass-bg: rgba(255, 255, 255, 0.6);
   --glass-bg-hover: rgba(255, 255, 255, 0.8);
-  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.06);
   --glass-border-focus: rgba(139, 92, 246, 0.4);
   --accent-gradient: linear-gradient(135deg, #7c3aed, #a78bfa);
   --bg-gradient: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(139, 92, 246, 0.06), transparent),
@@ -111,7 +116,7 @@ body::before {
 }
 
 a { color: var(--accent-hover); text-decoration: none; transition: color .15s; }
-a:hover { color: #c4b5fd; }
+a:hover { color: var(--link-hover); }
 
 /* ======== TOPBAR ======== */
 .topbar {
@@ -548,7 +553,7 @@ a:hover { color: #c4b5fd; }
   overflow: hidden;
 }
 .glass-table table { width: 100%; border-collapse: collapse; }
-.glass-table thead { background: rgba(255, 255, 255, 0.02); }
+.glass-table thead { background: var(--bg-secondary); }
 .glass-table th {
   text-align: left; padding: 10px 14px;
   font-size: 11px; font-weight: 600; color: var(--text-muted);
@@ -559,7 +564,7 @@ a:hover { color: #c4b5fd; }
 .glass-table td {
   padding: 10px 14px;
   font-size: 12.5px; color: var(--text-secondary);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--border);
 }
 .glass-table tr:last-child td { border-bottom: none; }
 .glass-table tr:hover td { background: var(--glass-bg-hover); }
@@ -661,6 +666,22 @@ textarea.input { min-height: 100px; resize: vertical; }
 
 /* ======== TABLE CARD ======== */
 .table-card { background: var(--glass-bg); backdrop-filter: blur(16px); border: 1px solid var(--glass-border); border-radius: 16px; overflow: hidden; }
+.table-card table { width: 100%; border-collapse: collapse; }
+.table-card thead { background: var(--bg-secondary); }
+.table-card th {
+  text-align: left; padding: 10px 14px;
+  font-size: 11px; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .5px;
+  border-bottom: 1px solid var(--glass-border);
+  white-space: nowrap;
+}
+.table-card td {
+  padding: 10px 14px;
+  font-size: 12.5px; color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+.table-card tbody tr:last-child td { border-bottom: none; }
+.table-card tbody tr:hover td { background: var(--glass-bg-hover); }
 
 /* ======== EMPTY STATE ======== */
 .empty-state { padding: 40px 20px; text-align: center; }
@@ -1274,3 +1295,39 @@ a.footer-link:hover { color: var(--accent-hover); }
   border-radius: 9px; background: var(--glass-bg); color: var(--text-muted);
 }
 .sbc.hot { background: var(--bg-selected); color: var(--accent-hover); font-weight: 600; }
+
+/* ======== LIGHT THEME OVERRIDES ======== */
+[data-theme="light"] .topbar {
+  background: rgba(255, 255, 255, 0.7);
+}
+[data-theme="light"] .sidebar {
+  background: rgba(255, 255, 255, 0.5);
+}
+@media (max-width: 768px) {
+  [data-theme="light"] .sidebar {
+    background: rgba(255, 255, 255, 0.85);
+  }
+}
+[data-theme="light"] .dropdown {
+  background: rgba(255, 255, 255, 0.95);
+}
+[data-theme="light"] .drawer {
+  background: rgba(255, 255, 255, 0.95);
+}
+[data-theme="light"] .page-loader {
+  background: rgba(255, 255, 255, 0.85);
+}
+[data-theme="light"] .login-footer {
+  background: rgba(255, 255, 255, 0.5);
+}
+[data-theme="light"] .footer {
+  background: rgba(255, 255, 255, 0.5);
+}
+[data-theme="light"] .input,
+[data-theme="light"] .select,
+[data-theme="light"] .glass-input,
+[data-theme="light"] .glass-select,
+[data-theme="light"] .glass-textarea,
+[data-theme="light"] .login-input {
+  background: rgba(255, 255, 255, 0.5);
+}
