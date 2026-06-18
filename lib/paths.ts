@@ -1,8 +1,10 @@
 import { join, dirname } from "path";
-import { existsSync } from "fs";
+import { existsSync, accessSync, constants } from "fs";
 import { fileURLToPath } from "url";
+import { tmpdir } from "os";
 
 let _projectRoot: string | null = null;
+let _uploadsDir: string | null = null;
 
 export function getProjectRoot(): string {
   if (_projectRoot) return _projectRoot;
@@ -25,8 +27,29 @@ export function getProjectRoot(): string {
   return cwd;
 }
 
+function isWritable(dir: string): boolean {
+  try {
+    accessSync(dir, constants.W_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function getUploadsDir(): string {
-  return process.env.UPLOAD_DIR || join(getProjectRoot(), "private", "uploads");
+  if (_uploadsDir) return _uploadsDir;
+  if (process.env.UPLOAD_DIR) {
+    _uploadsDir = process.env.UPLOAD_DIR;
+    return _uploadsDir;
+  }
+  const primary = join(getProjectRoot(), "private", "uploads");
+  const root = getProjectRoot();
+  if (!existsSync(root) || !isWritable(root)) {
+    _uploadsDir = join(tmpdir(), "uploads");
+  } else {
+    _uploadsDir = primary;
+  }
+  return _uploadsDir;
 }
 
 export function getAvatarsDir(): string {
@@ -34,5 +57,9 @@ export function getAvatarsDir(): string {
 }
 
 export function getTempDir(): string {
-  return join(getProjectRoot(), "private", "temp");
+  const root = getProjectRoot();
+  if (!existsSync(root) || !isWritable(root)) {
+    return join(tmpdir(), "temp");
+  }
+  return join(root, "private", "temp");
 }
