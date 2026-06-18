@@ -1,10 +1,11 @@
 import { join, dirname } from "path";
-import { existsSync, accessSync, constants } from "fs";
+import { existsSync, mkdirSync } from "fs";
 import { fileURLToPath } from "url";
 import { tmpdir } from "os";
 
 let _projectRoot: string | null = null;
 let _uploadsDir: string | null = null;
+let _tempDir: string | null = null;
 
 export function getProjectRoot(): string {
   if (_projectRoot) return _projectRoot;
@@ -27,9 +28,9 @@ export function getProjectRoot(): string {
   return cwd;
 }
 
-function isWritable(dir: string): boolean {
+function tryMkdir(dir: string): boolean {
   try {
-    accessSync(dir, constants.W_OK);
+    mkdirSync(dir, { recursive: true });
     return true;
   } catch {
     return false;
@@ -43,11 +44,11 @@ export function getUploadsDir(): string {
     return _uploadsDir;
   }
   const primary = join(getProjectRoot(), "private", "uploads");
-  const root = getProjectRoot();
-  if (!existsSync(root) || !isWritable(root)) {
-    _uploadsDir = join(tmpdir(), "uploads");
-  } else {
+  if (tryMkdir(primary)) {
     _uploadsDir = primary;
+  } else {
+    _uploadsDir = join(tmpdir(), "uploads");
+    tryMkdir(_uploadsDir);
   }
   return _uploadsDir;
 }
@@ -57,9 +58,13 @@ export function getAvatarsDir(): string {
 }
 
 export function getTempDir(): string {
-  const root = getProjectRoot();
-  if (!existsSync(root) || !isWritable(root)) {
-    return join(tmpdir(), "temp");
+  if (_tempDir) return _tempDir;
+  const primary = join(getProjectRoot(), "private", "temp");
+  if (tryMkdir(primary)) {
+    _tempDir = primary;
+  } else {
+    _tempDir = join(tmpdir(), "temp");
+    tryMkdir(_tempDir);
   }
-  return join(root, "private", "temp");
+  return _tempDir;
 }
