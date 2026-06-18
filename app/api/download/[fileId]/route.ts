@@ -4,6 +4,7 @@ import { readFile } from "fs/promises";
 import { existsSync } from "fs";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getUploadsDir } from "@/lib/paths";
 
 async function getAttachment(fileId: string) {
   const session = await auth();
@@ -23,7 +24,7 @@ async function getAttachment(fileId: string) {
     return { error: "Файл не найден", status: 404 };
   }
 
-  const filePath = join(process.cwd(), "private", "uploads", attachment.storedName);
+  const filePath = join(getUploadsDir(), attachment.storedName);
   if (!existsSync(filePath)) {
     return { error: "Файл не найден на диске", status: 404 };
   }
@@ -81,7 +82,7 @@ export async function HEAD(
     }
 
     const { attachment } = result;
-    const filePath = join(process.cwd(), "private", "uploads", attachment.storedName);
+    const filePath = join(getUploadsDir(), attachment.storedName);
     const stat = await import("fs/promises").then((m) => m.stat(filePath));
 
     return new NextResponse(null, {

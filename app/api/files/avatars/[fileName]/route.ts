@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { readFile } from "fs/promises";
 import { join } from "path";
 import { existsSync } from "fs";
+import { getAvatarsDir } from "@/lib/paths";
 
 export async function GET(
   _request: NextRequest,
@@ -19,7 +20,7 @@ export async function GET(
       return NextResponse.json({ error: "Не указано имя файла" }, { status: 400 });
     }
 
-    const filePath = join(process.cwd(), "private", "uploads", "avatars", fileName);
+    const filePath = join(getAvatarsDir(), fileName);
     if (!existsSync(filePath)) {
       return NextResponse.json({ error: "Файл не найден" }, { status: 404 });
     }

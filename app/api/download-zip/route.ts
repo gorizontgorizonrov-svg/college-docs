@@ -5,6 +5,7 @@ import { ZipArchive } from "archiver";
 import { createWriteStream, existsSync } from "fs";
 import { mkdir, readFile } from "fs/promises";
 import { join } from "path";
+import { getUploadsDir, getTempDir } from "@/lib/paths";
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Нет файлов для скачивания" }, { status: 404 });
     }
 
-    const tempDir = join(process.cwd(), "private", "temp");
+    const tempDir = getTempDir();
     if (!existsSync(tempDir)) {
       await mkdir(tempDir, { recursive: true });
     }
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
       archive.pipe(output);
 
       for (const file of files) {
-        const filePath = join(process.cwd(), "private", "uploads", file.storedName);
+        const filePath = join(getUploadsDir(), file.storedName);
         if (existsSync(filePath)) {
           archive.file(filePath, { name: file.originalName });
         }

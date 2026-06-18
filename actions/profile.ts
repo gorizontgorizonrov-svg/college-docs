@@ -7,6 +7,7 @@ import { join } from "path";
 import { writeFile, mkdir } from "fs/promises";
 import { existsSync } from "fs";
 import bcrypt from "bcryptjs";
+import { getAvatarsDir } from "@/lib/paths";
 
 export async function getProfile(userId: string) {
   const session = await auth();
@@ -95,7 +96,7 @@ export async function uploadAvatar(formData: FormData) {
   if (!file.type.startsWith("image/")) return { error: "Только изображения" };
   if (file.size > 5 * 1024 * 1024) return { error: "Максимум 5 МБ" };
 
-  const uploadDir = join(process.cwd(), "private", "uploads", "avatars");
+  const uploadDir = getAvatarsDir();
   if (!existsSync(uploadDir)) {
     await mkdir(uploadDir, { recursive: true });
   }

@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { readFile } from "fs/promises";
 import { join } from "path";
 import { existsSync } from "fs";
+import { getUploadsDir } from "@/lib/paths";
 
 const MIME_TYPES: Record<string, string> = {
   pdf: "application/pdf",
@@ -39,7 +40,7 @@ export async function GET(
       return NextResponse.json({ error: "Не указано имя файла" }, { status: 400 });
     }
 
-    const filePath = join(process.cwd(), "private", "uploads", fileName);
+    const filePath = join(getUploadsDir(), fileName);
     if (!existsSync(filePath)) {
       return NextResponse.json({ error: "Файл не найден" }, { status: 404 });
     }

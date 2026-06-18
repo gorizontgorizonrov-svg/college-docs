@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { join } from "path";
+import { getUploadsDir, getTempDir } from "@/lib/paths";
 
 export async function getFileAttachments(documentId: string) {
   const session = await auth();
@@ -158,7 +159,7 @@ export async function downloadAllAsZip(documentId: string) {
   const { createWriteStream, existsSync } = await import("fs");
   const { mkdir, unlink } = await import("fs/promises");
 
-  const zipDir = join(process.cwd(), "private", "temp");
+  const zipDir = getTempDir();
 
   if (!existsSync(zipDir)) {
     await mkdir(zipDir, { recursive: true });
@@ -201,7 +202,7 @@ export async function downloadAllAsZip(documentId: string) {
     archive.pipe(output);
 
     for (const file of files) {
-      const filePath = join(process.cwd(), "private", "uploads", file.storedName);
+      const filePath = join(getUploadsDir(), file.storedName);
       archive.file(filePath, { name: file.originalName });
     }
 

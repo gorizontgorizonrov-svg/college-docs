@@ -3,6 +3,7 @@ import { writeFile, mkdir } from "fs/promises";
 import { join, extname } from "path";
 import { existsSync } from "fs";
 import { auth } from "@/auth";
+import { getUploadsDir } from "@/lib/paths";
 
 const ALLOWED_TYPES = [
   "image/jpeg", "image/png", "image/jpg", "image/gif", "image/webp", "image/bmp", "image/svg+xml",
@@ -144,7 +145,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const uploadDir = join(process.cwd(), "private", "uploads");
+    const uploadDir = getUploadsDir();
     if (!existsSync(uploadDir)) {
       await mkdir(uploadDir, { recursive: true });
     }
