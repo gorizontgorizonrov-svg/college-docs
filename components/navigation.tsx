@@ -20,7 +20,6 @@ import {
   IconList,
   IconEdit,
   IconBook,
-  IconClock,
   IconRefresh,
   IconCircleCheck,
   IconCircleX,
@@ -99,9 +98,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
               key={item.href}
               href={item.href}
               className={`ni ${
-                pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href + "/"))
-                  ? "on"
-                  : ""
+                pathname === item.href ? "on" : ""
               }`}
             >
               <item.Icon size={18} />
@@ -112,7 +109,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
         </nav>
 
         <div className="topbar-right">
-          <button className="ib" title={t("nav.search")}><IconSearch size={18} /></button>
+          <Link href="/archive" className="ib" title={t("nav.search")}><IconSearch size={18} /></Link>
           <NotificationDropdown />
           <Link href="/profile" className="ib" title={t("nav.profile")}><IconUser size={18} /></Link>
           <ThemeToggle />
@@ -232,7 +229,6 @@ const sidebarSections: {
   {
     labelKey: "sidebar.statuses",
     items: [
-      { href: "/documents/pending", labelKey: "sidebar.waiting", Icon: IconClock },
       { href: "/documents?status=IN_APPROVAL", labelKey: "sidebar.inProgress", Icon: IconRefresh },
       { href: "/documents?status=APPROVED", labelKey: "sidebar.completed", Icon: IconCircleCheck },
       { href: "/documents?status=REJECTED", labelKey: "sidebar.rejected", Icon: IconCircleX },
@@ -259,11 +255,12 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
 
   const isActive = (href: string) => {
     if (href.includes("?")) {
-      const [base, query] = href.split("?");
-      const params = new URLSearchParams(query);
-      return pathname === base && Array.from(params).every(([k, v]) => searchParams.get(k) === v);
+      const [basePath, queryString] = href.split("?");
+      if (pathname !== basePath) return false;
+      const params = new URLSearchParams(queryString);
+      return Array.from(params).every(([k, v]) => searchParams.get(k) === v);
     }
-    return pathname === href || pathname.startsWith(href + "/");
+    return pathname === href;
   };
 
   const filteredSections = sidebarSections.map((section) => ({

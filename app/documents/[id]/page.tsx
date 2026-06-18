@@ -53,6 +53,26 @@ function computeDaysLeft(deadline: Date | null): number | null {
   return Math.ceil((deadline.getTime() - Date.now()) / 86400000);
 }
 
+function getFileLabel(fileAttachments: { mimeType: string }[], fileUrl: string | null): string {
+  const mime = fileAttachments[0]?.mimeType;
+  if (mime) {
+    if (mime === "application/pdf") return "PDF";
+    if (mime.includes("word") || mime.includes("document")) return "DOCX";
+    if (mime.includes("spreadsheet") || mime.includes("excel") || mime.includes("xls")) return "XLSX";
+    if (mime.startsWith("image/")) return "IMG";
+    if (mime.includes("zip") || mime.includes("rar") || mime.includes("tar") || mime.includes("7z") || mime.includes("gzip")) return "ZIP";
+    return "Файл";
+  }
+  if (!fileUrl) return "PDF";
+  const ext = fileUrl.split(".").pop()?.toLowerCase();
+  if (ext === "pdf") return "PDF";
+  if (["doc", "docx"].includes(ext || "")) return "DOCX";
+  if (["xls", "xlsx"].includes(ext || "")) return "XLSX";
+  if (["jpg", "jpeg", "png", "gif", "webp", "bmp"].includes(ext || "")) return "IMG";
+  if (["zip", "rar", "7z", "gz", "tar"].includes(ext || "")) return "ZIP";
+  return "Файл";
+}
+
 export default async function DocumentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
@@ -108,7 +128,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
           </Link>
           {doc.fileUrl && (
             <a href={doc.fileUrl} download className="btn btn-ghost">
-              <IconDownload size={16} />PDF
+              <IconDownload size={16} />{getFileLabel(fileAttachments, doc.fileUrl)}
             </a>
           )}
           {myPendingApproval && (
