@@ -40,7 +40,18 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const ALLOWED_EXTS = ["pdf","doc","docx","xls","xlsx","ppt","pptx","jpg","jpeg","png","gif","webp","bmp","txt","csv","rtf","zip","rar","7z","gz","tar","odt","ods","odp"];
+const ALLOWED_EXTS = [
+  "pdf","doc","docx","docm","dot","dotx",
+  "xls","xlsx","xlsm","xlt","xltx",
+  "ppt","pptx","pptm","pot","potx","pps","ppsx",
+  "jpg","jpeg","png","gif","webp","bmp","svg","tif","tiff","heic","heif",
+  "txt","csv","rtf",
+  "zip","rar","7z","gz","tar",
+  "odt","ods","odp",
+  "json","xml",
+  "eml","msg",
+  "md",
+];
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
 function formatFileSize(bytes: number): string {
@@ -316,7 +327,7 @@ export default function CreateDocumentPage() {
                     {isDragOver ? "Отпустите файл для загрузки" : "Перетащите файл сюда или нажмите для выбора"}
                   </span>
                   <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-                    PDF, DOC, XLS, JPG, PNG — до 50 МБ
+                    PDF, DOC, XLS, JPG, PNG и другие — до 50 МБ
                   </span>
                 </label>
               </div>
