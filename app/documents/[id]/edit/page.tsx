@@ -28,6 +28,9 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+const ALLOWED_EXTS = ["pdf","doc","docx","xls","xlsx","ppt","pptx","jpg","jpeg","png","gif","webp","bmp","txt","csv","rtf","zip","rar","7z","gz","tar","odt","ods","odp"];
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
+
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return bytes + " Б";
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " КБ";
@@ -54,6 +57,8 @@ export default function EditDocumentPage() {
   const [loading, setLoading] = useState(true);
   const [file, setFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [removeFile, setRemoveFile] = useState(false);
 
   const {
     register,
@@ -78,6 +83,19 @@ export default function EditDocumentPage() {
   }, [params.id, setValue]);
 
   const handleFileSelect = useCallback((f: File | null) => {
+    setFileError(null);
+    setRemoveFile(false);
+    if (f) {
+      const ext = f.name.split(".").pop()?.toLowerCase();
+      if (f.size > MAX_FILE_SIZE) {
+        setFileError(`Файл слишком большой (максимум 50 МБ)`);
+        return;
+      }
+      if (!ext || !ALLOWED_EXTS.includes(ext)) {
+        setFileError(`Недопустимый тип файла. Разрешены: ${ALLOWED_EXTS.join(", ")}`);
+        return;
+      }
+    }
     setFile(f);
     if (filePreview) { URL.revokeObjectURL(filePreview); setFilePreview(null); }
     if (f && f.type.startsWith("image/")) {
@@ -90,10 +108,12 @@ export default function EditDocumentPage() {
     setError(null);
 
     try {
-      let fileUrl: string | undefined;
+      let fileUrl: string | null | undefined;
       let fileInfo: { originalName: string; storedName: string; mimeType: string; fileSize: number } | undefined;
 
-      if (file) {
+      if (removeFile) {
+        fileUrl = null;
+      } else if (file) {
         const formData = new FormData();
         formData.append("file", file);
         const res = await fetch("/api/upload", { method: "POST", body: formData });
@@ -106,6 +126,8 @@ export default function EditDocumentPage() {
             mimeType: json.mimeType,
             fileSize: json.fileSize,
           };
+        } else {
+          throw new Error(json.error || "Ошибка загрузки файла");
         }
       }
 
@@ -194,22 +216,30 @@ export default function EditDocumentPage() {
                 Прикреплённый файл
               </h3>
 
-              {file ? (
+              {fileError && (
+                <p className="text-xs mb-2" style={{ color: "var(--danger)" }}>{fileError}</p>
+              )}
+              {removeFile && (
+                <p className="text-xs mb-2" style={{ color: "var(--warning)" }}>Файл будет удалён после сохранения</p>
+              )}
+              {file || removeFile ? (
                 <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "var(--bg-secondary)", border: "1px solid var(--glass-border)" }}>
                   <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "var(--bg-hover)" }}>
                     {filePreview ? (
                       <img src={filePreview} alt="preview" className="w-10 h-10 rounded-lg object-cover" />
                     ) : (
-                      getFileIcon(file.type, 20)
+                      getFileIcon(file ? file.type : "", 20)
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{file.name}</p>
-                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>{formatFileSize(file.size)}</p>
+                    <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                      {file ? file.name : "Файл будет удалён"}
+                    </p>
+                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>{file ? formatFileSize(file.size) : ""}</p>
                   </div>
                   <button
                     type="button"
-                    onClick={() => { handleFileSelect(null); }}
+                    onClick={() => { handleFileSelect(null); setRemoveFile(false); }}
                     className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                     style={{ color: "var(--text-muted)" }}
                     onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-hover)"; }}
@@ -219,22 +249,33 @@ export default function EditDocumentPage() {
                   </button>
                 </div>
               ) : (
-                <div className="rounded-xl p-8 text-center transition-all duration-200 cursor-pointer" style={{ border: "2px dashed var(--glass-border)" }}>
-                  <input
-                    type="file"
-                    onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center gap-2">
-                    <IconCloudUpload className="w-10 h-10" style={{ color: "var(--text-muted)" }} />
-                    <span className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>
-                      Нажмите для выбора файла
-                    </span>
-                    <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-                      PDF, DOC, XLS, JPG, PNG — до 10 МБ
-                    </span>
-                  </label>
+                <div className="flex flex-col gap-3">
+                  <div className="rounded-xl p-8 text-center transition-all duration-200 cursor-pointer" style={{ border: "2px dashed var(--glass-border)" }}>
+                    <input
+                      type="file"
+                      onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center gap-2">
+                      <IconCloudUpload className="w-10 h-10" style={{ color: "var(--text-muted)" }} />
+                      <span className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>
+                        Нажмите для выбора файла
+                      </span>
+                      <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+                        PDF, DOC, XLS, JPG, PNG — до 50 МБ
+                      </span>
+                    </label>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setRemoveFile(true)}
+                    className="btn btn-danger"
+                    style={{ alignSelf: "flex-start" }}
+                  >
+                    <IconX size={14} />
+                    Удалить текущий файл
+                  </button>
                 </div>
               )}
             </div>

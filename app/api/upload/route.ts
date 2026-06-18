@@ -36,6 +36,36 @@ const MAGIC_BYTES: Record<string, Uint8Array[]> = {
   "application/zip": [new Uint8Array([0x50, 0x4B, 0x03, 0x04])],
 };
 
+const EXT_TO_MIME: Record<string, string> = {
+  pdf: "application/pdf",
+  doc: "application/msword",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  xls: "application/vnd.ms-excel",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ppt: "application/vnd.ms-powerpoint",
+  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  gif: "image/gif",
+  webp: "image/webp",
+  bmp: "image/bmp",
+  svg: "image/svg+xml",
+  txt: "text/plain",
+  csv: "text/csv",
+  rtf: "text/rtf",
+  zip: "application/zip",
+  rar: "application/x-rar-compressed",
+  "7z": "application/x-7z-compressed",
+  gz: "application/gzip",
+  tar: "application/x-tar",
+  odt: "application/vnd.oasis.opendocument.text",
+  ods: "application/vnd.oasis.opendocument.spreadsheet",
+  odp: "application/vnd.oasis.opendocument.presentation",
+  xml: "text/xml",
+  json: "application/json",
+};
+
 const MAX_SIZE = 50 * 1024 * 1024;
 const MAX_SIZE_MB = 50;
 
@@ -59,7 +89,13 @@ export async function POST(request: NextRequest) {
     }
 
     if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json({ error: "Недопустимый MIME-тип файла" }, { status: 400 });
+      const ext = extname(file.name).toLowerCase().replace(".", "");
+      const fallbackMime = EXT_TO_MIME[ext];
+      if (fallbackMime && ALLOWED_TYPES.includes(fallbackMime)) {
+        Object.defineProperty(file, "type", { value: fallbackMime });
+      } else {
+        return NextResponse.json({ error: "Недопустимый MIME-тип файла" }, { status: 400 });
+      }
     }
 
     if (file.size > MAX_SIZE) {

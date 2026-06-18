@@ -40,6 +40,9 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+const ALLOWED_EXTS = ["pdf","doc","docx","xls","xlsx","ppt","pptx","jpg","jpeg","png","gif","webp","bmp","txt","csv","rtf","zip","rar","7z","gz","tar","odt","ods","odp"];
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
+
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return bytes + " Б";
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " КБ";
@@ -66,6 +69,7 @@ export default function CreateDocumentPage() {
   const [file, setFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
 
   const {
     register,
@@ -77,6 +81,18 @@ export default function CreateDocumentPage() {
   const charLimit = 10000;
 
   const handleFileSelect = useCallback((f: File | null) => {
+    setFileError(null);
+    if (f) {
+      const ext = f.name.split(".").pop()?.toLowerCase();
+      if (f.size > MAX_FILE_SIZE) {
+        setFileError(`Файл слишком большой (максимум 50 МБ)`);
+        return;
+      }
+      if (!ext || !ALLOWED_EXTS.includes(ext)) {
+        setFileError(`Недопустимый тип файла. Разрешены: ${ALLOWED_EXTS.join(", ")}`);
+        return;
+      }
+    }
     setFile(f);
     if (filePreview) { URL.revokeObjectURL(filePreview); setFilePreview(null); }
     if (f && f.type.startsWith("image/")) {
@@ -122,6 +138,8 @@ export default function CreateDocumentPage() {
             mimeType: json.mimeType,
             fileSize: json.fileSize,
           };
+        } else {
+          throw new Error(json.error || "Ошибка загрузки файла");
         }
       }
 
@@ -248,6 +266,9 @@ export default function CreateDocumentPage() {
               Прикреплённый файл
             </h3>
 
+            {fileError && (
+              <p className="text-xs mb-2" style={{ color: "var(--danger)" }}>{fileError}</p>
+            )}
             {file ? (
               <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "var(--bg-secondary)", border: "1px solid var(--glass-border)" }}>
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "var(--bg-hover)" }}>
@@ -295,7 +316,7 @@ export default function CreateDocumentPage() {
                     {isDragOver ? "Отпустите файл для загрузки" : "Перетащите файл сюда или нажмите для выбора"}
                   </span>
                   <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-                    PDF, DOC, XLS, JPG, PNG — до 10 МБ
+                    PDF, DOC, XLS, JPG, PNG — до 50 МБ
                   </span>
                 </label>
               </div>

@@ -24,7 +24,6 @@ import {
   IconGitBranch,
   IconClipboardList,
   IconFolderOpen,
-  IconEye,
 } from "@tabler/icons-react";
 
 const statusLabels: Record<string, string> = {
@@ -224,30 +223,12 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
             </>
           )}
 
-          {(fileAttachments.length > 0 || doc.fileUrl) && (
+          {fileAttachments.length > 0 && (
             <>
               <div className="content-divider" />
               <div>
                 <div className="form-label">Прикреплённые файлы</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
-                  {doc.fileUrl && (
-                    <div className="file-link" style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", cursor: "default" }}>
-                      <IconFileText size={20} style={{ color: "var(--accent)", flexShrink: 0 }} />
-                      <div style={{ flex: 1, fontSize: 13, minWidth: 0 }}>
-                        <div style={{ fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {doc.fileUrl.split("/").pop()}
-                        </div>
-                      </div>
-                      <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                        <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="file-link" title="Просмотреть">
-                          <IconEye size={14} />
-                        </a>
-                        <a href={doc.fileUrl} download className="file-link" title="Скачать">
-                          <IconDownload size={14} />
-                        </a>
-                      </div>
-                    </div>
-                  )}
                   {fileAttachments.map((file) => (
                     <FileDownload
                       key={file.id}

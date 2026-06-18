@@ -2,8 +2,9 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getMyDocuments } from "@/actions/documents";
-import { IconPlus, IconFileText, IconDownload, IconEye } from "@tabler/icons-react";
+import { IconPlus, IconFileText, IconDownload, IconEye, IconX } from "@tabler/icons-react";
 import { ClickableRow } from "@/components/ClickableRow";
+import type { DocumentStatus, InternalDocType } from "@prisma/client";
 
 const statusLabels: Record<string, string> = {
   DRAFT: "Черновик",
@@ -31,11 +32,19 @@ const typeLabels: Record<string, string> = {
   REPORT: "Отчёт",
 };
 
-export default async function DocumentsPage() {
+export default async function DocumentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string; type?: string }>;
+}) {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const documents = await getMyDocuments(session.user.id);
+  const { status, type } = await searchParams;
+  const documents = await getMyDocuments(session.user.id, {
+    status: (status as DocumentStatus) || undefined,
+    type: (type as InternalDocType) || undefined,
+  });
 
   return (
     <div className="anim-fade-in space-y-4">
@@ -46,6 +55,23 @@ export default async function DocumentsPage() {
           Создать
         </Link>
       </div>
+
+      {(status || type) && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {status && (
+            <Link href="/documents" className="btn btn-ghost" style={{ fontSize: 11, padding: "3px 10px" }}>
+              {statusLabels[status] || status}
+              <IconX size={12} />
+            </Link>
+          )}
+          {type && (
+            <Link href="/documents" className="btn btn-ghost" style={{ fontSize: 11, padding: "3px 10px" }}>
+              {typeLabels[type] || type}
+              <IconX size={12} />
+            </Link>
+          )}
+        </div>
+      )}
 
       {documents.length === 0 ? (
         <div className="empty-state">

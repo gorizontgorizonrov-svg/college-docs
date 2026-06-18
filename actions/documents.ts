@@ -211,7 +211,7 @@ export async function updateDocument(
   data: {
     title?: string;
     content?: string;
-    fileUrl?: string;
+    fileUrl?: string | null;
     changeNote?: string;
     fileInfo?: {
       originalName: string;
@@ -243,16 +243,21 @@ export async function updateDocument(
       },
     });
 
+    const updateData: Record<string, unknown> = {
+      title: data.title,
+      content: data.content,
+    };
+    if (data.fileUrl !== undefined) {
+      updateData.fileUrl = data.fileUrl;
+    }
     await tx.internalDocument.update({
       where: { id },
-      data: {
-        title: data.title,
-        content: data.content,
-        fileUrl: data.fileUrl,
-      },
+      data: updateData,
     });
 
-    if (data.fileInfo && data.fileUrl) {
+    if (data.fileUrl === null) {
+      await tx.fileAttachment.deleteMany({ where: { documentId: id } });
+    } else if (data.fileInfo && data.fileUrl) {
       await tx.fileAttachment.create({
         data: {
           documentId: id,

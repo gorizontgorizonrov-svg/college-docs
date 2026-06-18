@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect, useCallback } from "react";
 import { ThemeToggle } from "./ThemeToggle";
@@ -250,6 +250,7 @@ const sidebarSections: {
 
 export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const { t } = useTranslation();
   const role = session?.user?.role || "";
@@ -258,8 +259,9 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
 
   const isActive = (href: string) => {
     if (href.includes("?")) {
-      const [base] = href.split("?");
-      return pathname === base;
+      const [base, query] = href.split("?");
+      const params = new URLSearchParams(query);
+      return pathname === base && Array.from(params).every(([k, v]) => searchParams.get(k) === v);
     }
     return pathname === href || pathname.startsWith(href + "/");
   };

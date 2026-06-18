@@ -142,8 +142,8 @@ export default function ProfilePage() {
       fd.append("avatar", file);
       await uploadAvatar(fd);
       await refreshProfile();
-    } catch {
-      setError("Ошибка загрузки аватара");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка загрузки аватара");
     } finally {
       setAvatarUploading(false);
     }
