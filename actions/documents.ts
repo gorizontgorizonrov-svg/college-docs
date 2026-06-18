@@ -28,10 +28,7 @@ export async function createDocument(data: {
       include: { stages: { orderBy: { stageOrder: "asc" } } },
     });
   } catch {
-    template = await prisma.workflowTemplate.findFirst({
-      where: { docType: data.type },
-      include: { stages: { orderBy: { stageOrder: "asc" } } },
-    });
+    // template stays null if query fails
   }
 
   const doc = await prisma.$transaction(async (tx) => {

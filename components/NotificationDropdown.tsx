@@ -39,7 +39,17 @@ export function NotificationDropdown() {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
 
-    return () => clearInterval(interval);
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        fetchNotifications();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, [session?.user?.id]);
 
   useEffect(() => {

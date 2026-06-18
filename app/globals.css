@@ -1289,7 +1289,6 @@ a.footer-link:hover { color: var(--accent-hover); }
 .act-text b { color: var(--text-primary); font-weight: 600; }
 .act-time { font-size: 10.5px; color: var(--text-muted); white-space: nowrap; }
 
-/* ======== SBC ======== */
 .sbc {
   margin-left: auto; font-size: 10.5px; padding: 1px 6px;
   border-radius: 9px; background: var(--glass-bg); color: var(--text-muted);

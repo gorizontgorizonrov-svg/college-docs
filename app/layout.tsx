@@ -1,4 +1,5 @@
 import type { Viewport } from "next";
+import { Inter } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 import "./globals.css";
 import { OfflineNotice } from "@/components/OfflineNotice";
@@ -8,6 +9,11 @@ import { I18nProvider } from "@/lib/i18n/client";
 import { getLocale } from "@/lib/i18n/server";
 import { getDict } from "@/lib/i18n/getDict";
 import type { Locale } from "@/lib/i18n/config";
+
+const inter = Inter({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-sans",
+});
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -60,7 +66,7 @@ export default async function RootLayout({
         <link rel="icon" href="/images/college-logo.svg" />
         <link rel="apple-touch-icon" href="/icon-192.svg" />
       </head>
-      <body className="min-h-full">
+      <body className={`min-h-full ${inter.variable}`}>
         <SessionProvider>
           <ThemeProvider>
             <I18nProvider initialLocale={locale} initialDict={dict}>
