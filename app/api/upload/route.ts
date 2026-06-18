@@ -183,10 +183,8 @@ export async function POST(request: NextRequest) {
       typeLabel: fileTypeLabels[effectiveMime] || "Файл",
     });
   } catch (error) {
-    console.error("Upload error:", error instanceof Error ? error.message : error);
-    if (error instanceof Error && error.message.includes("body")) {
-      return NextResponse.json({ error: `Слишком большой файл. Максимум ${MAX_SIZE_MB} МБ` }, { status: 413 });
-    }
-    return NextResponse.json({ error: "Ошибка загрузки" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("Upload error:", msg);
+    return NextResponse.json({ error: `Ошибка загрузки: ${msg}` }, { status: 500 });
   }
 }
