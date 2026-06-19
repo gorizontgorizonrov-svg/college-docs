@@ -87,42 +87,47 @@ export async function updateProfile(
 }
 
 export async function uploadAvatar(formData: FormData) {
-  const session = await auth();
-  if (!session?.user) return { error: "Не авторизован" };
+  try {
+    const session = await auth();
+    if (!session?.user) return { error: "Не авторизован" };
 
-  const file = formData.get("avatar") as File | null;
-  if (!file) return { error: "Файл не выбран" };
+    const file = formData.get("avatar") as File | null;
+    if (!file) return { error: "Файл не выбран" };
 
-  if (!file.type.startsWith("image/")) return { error: "Только изображения" };
-  if (file.size > 5 * 1024 * 1024) return { error: "Максимум 5 МБ" };
+    if (!file.type.startsWith("image/")) return { error: "Только изображения" };
+    if (file.size > 5 * 1024 * 1024) return { error: "Максимум 5 МБ" };
 
-  const uploadDir = getAvatarsDir();
-  if (!existsSync(uploadDir)) {
-    await mkdir(uploadDir, { recursive: true });
-  }
+    const uploadDir = getAvatarsDir();
+    if (!existsSync(uploadDir)) {
+      await mkdir(uploadDir, { recursive: true });
+    }
 
-  const ext = file.name.split(".").pop() || "png";
-  const fileName = `avatar-${session.user.id}-${Date.now()}.${ext}`;
-  const filePath = join(uploadDir, fileName);
-  const buffer = Buffer.from(await file.arrayBuffer());
-  await writeFile(filePath, buffer);
+    const ext = file.name.split(".").pop() || "png";
+    const fileName = `avatar-${session.user.id}-${Date.now()}.${ext}`;
+    const filePath = join(uploadDir, fileName);
+    const buffer = Buffer.from(await file.arrayBuffer());
+    await writeFile(filePath, buffer);
 
-  const avatarUrl = `/api/files/avatars/${fileName}`;
+    const avatarUrl = `/api/files/avatars/${fileName}`;
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { employee: true },
-  });
-
-  if (user?.employee) {
-    await prisma.employee.update({
-      where: { id: user.employee.id },
-      data: { avatarUrl },
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: { employee: true },
     });
-  }
 
-  revalidatePath("/profile");
-  return { error: null, avatarUrl };
+    if (user?.employee) {
+      await prisma.employee.update({
+        where: { id: user.employee.id },
+        data: { avatarUrl },
+      });
+    }
+
+    revalidatePath("/profile");
+    return { error: null, avatarUrl };
+  } catch (error) {
+    console.error("uploadAvatar error:", error);
+    return { error: error instanceof Error ? error.message : "Ошибка загрузки аватара" };
+  }
 }
 
 export async function changePassword(

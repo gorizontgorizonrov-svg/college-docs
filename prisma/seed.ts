@@ -52,14 +52,13 @@ async function main() {
     return user;
   };
 
-  const dirUser = await createEmployee("turdubaeva@jak.kg", "SIGNER", "Б.М.", "Турдубаева", director.id, depAdmin.id);
+  const bekovUser = await createEmployee("bekov@jak.kg", "SIGNER", "Э.", "Беков", director.id, depAdmin.id);
   const nachUser = await createEmployee("abieva@jak.kg", "VALIDATOR", "М.Ш.", "Абиева", nachUch.id, depUO.id);
   const teacherUser = await createEmployee("teacher@jak.kg", "INITIATOR", "И.И.", "Учитель", teacher.id, depAS.id);
 
   await createEmployee("gulperi@jak.kg", "SIGNER", "Гулпери", "Кожобек кызы", zamDir.id, depAdmin.id);
   await createEmployee("kudukbaeva@jak.kg", "VALIDATOR", "Э.", "Кудукбаева", inspektor.id, depUO.id);
   await createEmployee("saparbaeva@jak.kg", "REGISTRAR", "М.М.", "Сапарбаева", deloproizvod.id, depUO.id);
-  await createEmployee("bekov@jak.kg", "SIGNER", "Э.", "Беков", director.id, depAdmin.id);
 
   // 4. Workflow шаблоны
   await prisma.workflowTemplate.create({
@@ -226,13 +225,13 @@ async function main() {
   });
 
   // Добавляем ЭП на утверждённый документ
-  const dirEmployee = await prisma.employee.findUnique({ where: { userId: dirUser.id } });
+  const dirEmployee = await prisma.employee.findUnique({ where: { userId: bekovUser.id } });
   if (dirEmployee) {
     await prisma.digitalSignature.create({
       data: {
         documentId: approvedDoc.id,
         employeeId: dirEmployee.id,
-        userId: dirUser.id,
+        userId: bekovUser.id,
         signatureData: "dummy:signature:data",
         documentHash: "abcdef1234567890abcdef1234567890",
         isVerified: true,
@@ -294,7 +293,7 @@ async function main() {
         outgoingDate: new Date(Date.now() - 5 * 86400000),
         status: "UNDER_RESOLUTION",
         resolution: "Начальнику учебной части подготовить отчёт",
-        resolutionAuthorId: dirUser.id,
+        resolutionAuthorId: bekovUser.id,
         resolutionDate: new Date(Date.now() - 2 * 86400000),
         executorId: nachUser ? (await prisma.employee.findUnique({ where: { userId: nachUser.id } }))?.id || null : null,
         deadline: new Date(Date.now() + 7 * 86400000),
@@ -311,7 +310,7 @@ async function main() {
         status: "EXECUTED",
         executedAt: new Date(Date.now() - 5 * 86400000),
         resolution: "Бухгалтерии подготовить и сдать отчёт",
-        resolutionAuthorId: dirUser.id,
+        resolutionAuthorId: bekovUser.id,
         executorId: registrar.id,
         deadline: new Date(Date.now() - 7 * 86400000),
         createdById: registrar.user.id,
@@ -369,7 +368,6 @@ async function main() {
   console.log("=== ADMIN ===");
   console.log("  admin@jak.kg / admin123");
   console.log("=== USERS ===");
-  console.log("  turdubaeva@jak.kg / password123 (Директор, SIGNER)");
   console.log("  gulperi@jak.kg / password123 (Зам.директора, SIGNER)");
   console.log("  abieva@jak.kg / password123 (Нач.учеб.части, VALIDATOR)");
   console.log("  kudukbaeva@jak.kg / password123 (Инспектор УМР, VALIDATOR)");

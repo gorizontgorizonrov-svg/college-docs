@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
 const roleBasedRoutes: Record<string, string[]> = {
-  "/documents/create": ["INITIATOR", "VALIDATOR", "ADMIN"],
+  "/documents/create": ["INITIATOR", "VALIDATOR", "SIGNER", "ADMIN"],
   "/documents/pending": ["VALIDATOR", "SIGNER", "REGISTRAR", "ADMIN"],
   "/documents/approval": ["VALIDATOR", "SIGNER"],
   "/incoming/register": ["REGISTRAR", "ADMIN"],
