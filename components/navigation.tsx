@@ -14,9 +14,7 @@ import {
   IconArchive,
   IconUser,
   IconLogout,
-  IconSearch,
   IconChevronDown,
-  IconPlus,
   IconSettings,
   IconUsers,
   IconClipboardList,
@@ -99,7 +97,6 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
         </nav>
 
         <div className="topbar-right">
-          <Link href="/archive" className="ib" title={t("nav.search")}><IconSearch size={18} /></Link>
           <NotificationDropdown />
           <ThemeToggle />
           <div className="dv" />
@@ -202,20 +199,6 @@ function UserDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   );
 }
 
-const sidebarSections: {
-  labelKey: string;
-  items: { href: string; labelKey: string; Icon: any; adminOnly?: boolean; createOnly?: boolean }[];
-}[] = [
-  {
-    labelKey: "sidebar.quickActions",
-    items: [
-      { href: "/profile", labelKey: "nav.profile", Icon: IconUser },
-      { href: "/documents/create", labelKey: "sidebar.createDocument", Icon: IconPlus, createOnly: true },
-      { href: "/admin/workflows", labelKey: "sidebar.templates", Icon: IconSettings, adminOnly: true },
-    ],
-  },
-];
-
 export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -223,7 +206,6 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
   const { t } = useTranslation();
   const role = session?.user?.role || "";
   const isAdmin = role === "ADMIN";
-  const canCreate = role === "INITIATOR" || role === "VALIDATOR" || role === "ADMIN";
 
   const isActive = (href: string) => {
     if (href.includes("?")) {
@@ -235,35 +217,10 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
     return pathname === href;
   };
 
-  const filteredSections = sidebarSections.map((section) => ({
-    ...section,
-    items: section.items.filter((item) => {
-      if (item.adminOnly && !isAdmin) return false;
-      if (item.createOnly && !canCreate) return false;
-      return true;
-    }),
-  })).filter((s) => s.items.length > 0);
-
   return (
     <>
       {!collapsed && <div className="sidebar-overlay" onClick={onToggle} />}
       <aside className={`sidebar ${collapsed ? "sidebar-collapsed" : ""}`}>
-        {filteredSections.map((section) => (
-          <div key={section.labelKey}>
-            <div className="sb-label">{collapsed ? "—" : t(section.labelKey)}</div>
-            {section.items.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`sb-item ${isActive(item.href) ? "on" : ""}`}
-                title={collapsed ? t(item.labelKey) : undefined}
-              >
-                <item.Icon size={18} className="sb-icon" />
-                {!collapsed && <span className="sb-text">{t(item.labelKey)}</span>}
-              </Link>
-            ))}
-          </div>
-        ))}
 
         {isAdmin && !collapsed && (
           <>

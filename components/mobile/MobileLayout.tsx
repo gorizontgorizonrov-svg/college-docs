@@ -2,20 +2,26 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   IconLayoutDashboard, IconFileText, IconPlus, IconInbox, IconSettings, IconUsers,
 } from "@tabler/icons-react";
-
-function getInitials(email?: string) {
-  return email?.[0]?.toUpperCase() || "?";
-}
+import { getProfile } from "@/actions/profile";
 
 export default function MobileLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session } = useSession();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    getProfile(session.user.id).then((data) => {
+      if (data?.employee?.avatarUrl) setAvatarUrl(data.employee.avatarUrl);
+    }).catch(() => {});
+  }, [session?.user?.id]);
 
   const role = session?.user?.role;
   const isAdmin = role === "ADMIN";
@@ -72,15 +78,19 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
           <div
             style={{
               width: 28, height: 28, borderRadius: "50%",
-              background: "var(--accent)", color: "#fff",
-              fontSize: 11, fontWeight: 600,
+              background: avatarUrl ? "none" : "var(--accent)",
+              color: "#fff", fontSize: 11, fontWeight: 600,
               display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer",
+              cursor: "pointer", overflow: "hidden",
             }}
             role="button" tabIndex={0}
             onClick={() => router.push("/profile")}
           >
-            {getInitials(session?.user?.email || undefined)}
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            ) : (
+              session?.user?.email?.[0]?.toUpperCase() || "?"
+            )}
           </div>
         </div>
       </header>
