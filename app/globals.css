@@ -1664,3 +1664,105 @@ a.footer-link:hover { color: var(--accent-hover); }
 [data-theme="light"] .login-input {
   background: rgba(255, 255, 255, 0.5);
 }
+
+/* ======== MOBILE LAYOUT (MobileLayout wrapper) ======== */
+@media (max-width: 639px) {
+  .app > .topbar,
+  .app > .layout,
+  .app > .footer {
+    display: none;
+  }
+}
+
+/* ======== MOBILE-OPTIMIZED TABLES → CARDS ======== */
+@media (max-width: 480px) {
+  .table-card table thead {
+    display: none;
+  }
+  .table-card table tbody tr {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    gap: 4px;
+  }
+  .table-card table tbody tr:last-child {
+    border-bottom: none;
+  }
+  .table-card table tbody tr:hover td {
+    background: none;
+  }
+  .table-card td {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 0;
+    border: none;
+    font-size: 12px;
+  }
+  .table-card td::before {
+    content: attr(data-label);
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    min-width: 60px;
+    flex-shrink: 0;
+  }
+  .table-card td:first-child {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 13px;
+  }
+  .table-card td:first-child::before {
+    display: none;
+  }
+  .table-card td.font-medium {
+    color: var(--accent-hover);
+  }
+  .table-card .file-link {
+    width: 32px;
+    height: 32px;
+  }
+
+  .filter-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .filter-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .btn {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  input, select, textarea, .input, .select, .glass-input, .glass-select, .glass-textarea {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+
+  .doc-item {
+    padding: 10px 0;
+  }
+
+  .profile-grid .glass-card {
+    padding: 14px;
+  }
+}
+
+/* ======== Плавный переход между layouts ======== */
+.mobile-layout-enter {
+  opacity: 0;
+}
+.mobile-layout-enter-active {
+  opacity: 1;
+  transition: opacity .2s;
+}
