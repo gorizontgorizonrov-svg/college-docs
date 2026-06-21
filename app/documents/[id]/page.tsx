@@ -7,6 +7,7 @@ import { ApprovalTimeline } from "@/components/ApprovalTimeline";
 import { SignatureStamp } from "@/components/SignatureStamp";
 import { ApprovalActions } from "./ApprovalActions";
 import FileDownload from "@/components/FileDownload";
+import PrintButton from "@/components/PrintButton";
 import {
   IconChevronRight,
   IconClock,
@@ -131,6 +132,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
               <IconDownload size={16} />{getFileLabel(fileAttachments, doc.fileUrl)}
             </a>
           )}
+          <PrintButton />
           {myPendingApproval && (
             <>
               <form action={async () => {

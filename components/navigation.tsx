@@ -21,6 +21,8 @@ import {
   IconX,
   IconMail,
   IconMenu2,
+  IconPlus,
+  IconTemplate,
 } from "@tabler/icons-react";
 
 const navItems: { href: string; labelKey: string; Icon: any; badge?: boolean }[] = [
@@ -222,6 +224,37 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
       {!collapsed && <div className="sidebar-overlay" onClick={onToggle} />}
       <aside className={`sidebar ${collapsed ? "sidebar-collapsed" : ""}`}>
 
+        {/* Quick Actions */}
+        {!collapsed && (
+          <>
+            <div className="sb-label">{t("sidebar.quickActions")}</div>
+            <Link href="/documents/create" className={`sb-item ${isActive("/documents/create") ? "on" : ""}`}>
+              <IconPlus size={18} className="sb-icon" />
+              <span className="sb-text">{t("sidebar.createDocument")}</span>
+            </Link>
+            {isAdmin && (
+              <Link href="/admin/templates" className={`sb-item ${isActive("/admin/templates") ? "on" : ""}`}>
+                <IconTemplate size={18} className="sb-icon" />
+                <span className="sb-text">{t("sidebar.templates")}</span>
+              </Link>
+            )}
+          </>
+        )}
+
+        {collapsed && (
+          <>
+            <Link href="/documents/create" className={`sb-item ${isActive("/documents/create") ? "on" : ""}`} title={t("sidebar.createDocument")}>
+              <IconPlus size={18} className="sb-icon" />
+            </Link>
+            {isAdmin && (
+              <Link href="/admin/templates" className={`sb-item ${isActive("/admin/templates") ? "on" : ""}`} title={t("sidebar.templates")}>
+                <IconTemplate size={18} className="sb-icon" />
+              </Link>
+            )}
+          </>
+        )}
+
+        {/* Administration */}
         {isAdmin && !collapsed && (
           <>
             <div className="sb-label">{t("sidebar.administration")}</div>
