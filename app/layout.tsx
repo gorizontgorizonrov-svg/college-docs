@@ -119,6 +119,7 @@ export default async function RootLayout({
         <meta name="google-site-verification" content="1067aabbcf4595ce" />
         <link rel="icon" href="/images/college-logo.svg" />
         <link rel="apple-touch-icon" href="/icon-192.svg" />
+        <meta name="google-site-verification" content="4KgeO3Fqka_3BdmeXfrNayixhh1Zm5DYI-2oN_uGA_E" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
