@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { getProfile, updateProfile, uploadAvatar, changePassword, getMyProfileDocuments } from "@/actions/profile";
+import { getProfile, updateProfile, changePassword, getMyProfileDocuments } from "@/actions/profile";
 import {
   IconUser,
   IconMail,
@@ -163,9 +163,10 @@ export default function ProfilePage() {
     try {
       const fd = new FormData();
       fd.append("avatar", file);
-      const result = await uploadAvatar(fd);
-      if (result.error) {
-        setError(result.error);
+      const res = await fetch("/api/upload/avatar", { method: "POST", body: fd });
+      const json = await res.json();
+      if (!json.success) {
+        setError(json.error || "Ошибка загрузки");
       } else {
         await refreshProfile();
       }
