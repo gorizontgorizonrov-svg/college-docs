@@ -55,15 +55,15 @@ export async function generateMetadata() {
     manifest: "/manifest.json",
     metadataBase: new URL(siteUrl),
     alternates: {
-      canonical: `/${locale}`,
+      canonical: "/",
       languages: Object.fromEntries(
-        (await import("@/lib/i18n/config")).locales.map((l: Locale) => [l, `/${l}`]),
+        (await import("@/lib/i18n/config")).locales.map((l: Locale) => [l, "/"]),
       ),
     },
     openGraph: {
       title: seo.title,
       description: seo.description,
-      url: `/${locale}`,
+      url: "/",
       siteName: "СЭД ЖАК ЖАГУ",
       locale: locale === "ky" ? "ky_KG" : locale === "ru" ? "ru_RU" : locale === "zh" ? "zh_CN" : "en_US",
       type: "website",
