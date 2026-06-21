@@ -9,7 +9,6 @@ import { NotificationDropdown } from "./NotificationDropdown";
 import { useTranslation } from "@/lib/i18n/client";
 import {
   IconLayoutDashboard,
-  IconSignature,
   IconFileText,
   IconInbox,
   IconArchive,
@@ -20,9 +19,6 @@ import {
   IconList,
   IconEdit,
   IconBook,
-  IconRefresh,
-  IconCircleCheck,
-  IconCircleX,
   IconPlus,
   IconSettings,
   IconUsers,
@@ -30,12 +26,10 @@ import {
   IconX,
   IconMail,
   IconMenu2,
-
 } from "@tabler/icons-react";
 
 const navItems: { href: string; labelKey: string; Icon: any; badge?: boolean }[] = [
   { href: "/dashboard", labelKey: "nav.home", Icon: IconLayoutDashboard },
-  { href: "/documents/pending", labelKey: "nav.pending", Icon: IconSignature, badge: true },
   { href: "/documents", labelKey: "nav.documents", Icon: IconFileText },
   { href: "/incoming", labelKey: "nav.incoming", Icon: IconInbox },
   { href: "/archive", labelKey: "nav.archive", Icon: IconArchive },
@@ -103,7 +97,6 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
             >
               <item.Icon size={18} />
               {t(item.labelKey)}
-              {item.badge && pathname.startsWith("/documents/pending") && <span className="ndot" />}
             </Link>
           ))}
         </nav>
@@ -220,18 +213,11 @@ const sidebarSections: {
   {
     labelKey: "sidebar.documents",
     items: [
-      { href: "/documents?type=DIRECTIVE", labelKey: "sidebar.directives", Icon: IconList },
+      { href: "/documents", labelKey: "nav.documents", Icon: IconFileText },
       { href: "/documents?type=ORDER", labelKey: "sidebar.orders", Icon: IconFileText },
+      { href: "/documents?type=DIRECTIVE", labelKey: "sidebar.directives", Icon: IconList },
       { href: "/documents?type=MEMO", labelKey: "sidebar.memos", Icon: IconEdit },
       { href: "/documents?type=CONTRACT", labelKey: "sidebar.contracts", Icon: IconBook },
-    ],
-  },
-  {
-    labelKey: "sidebar.statuses",
-    items: [
-      { href: "/documents?status=IN_APPROVAL", labelKey: "sidebar.inProgress", Icon: IconRefresh },
-      { href: "/documents?status=APPROVED", labelKey: "sidebar.completed", Icon: IconCircleCheck },
-      { href: "/documents?status=REJECTED", labelKey: "sidebar.rejected", Icon: IconCircleX },
     ],
   },
   {

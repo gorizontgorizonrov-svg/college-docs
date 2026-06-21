@@ -130,6 +130,24 @@ export async function uploadAvatar(formData: FormData) {
   }
 }
 
+export async function getMyProfileDocuments(userId: string) {
+  const session = await auth();
+  if (!session?.user) return [];
+
+  try {
+    return await prisma.internalDocument.findMany({
+      where: { authorId: userId },
+      include: {
+        author: { include: { employee: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    });
+  } catch {
+    return [];
+  }
+}
+
 export async function changePassword(
   userId: string,
   oldPassword: string,

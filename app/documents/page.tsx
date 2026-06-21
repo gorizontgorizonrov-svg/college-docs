@@ -32,6 +32,15 @@ const typeLabels: Record<string, string> = {
   REPORT: "Отчёт",
 };
 
+const statusFilters = [
+  { value: "", label: "Все" },
+  { value: "DRAFT", label: "Черновики" },
+  { value: "IN_APPROVAL", label: "На согласовании" },
+  { value: "APPROVED", label: "Утверждённые" },
+  { value: "REJECTED", label: "Отклонённые" },
+  { value: "ARCHIVED", label: "Архивные" },
+];
+
 export default async function DocumentsPage({
   searchParams,
 }: {
@@ -56,16 +65,34 @@ export default async function DocumentsPage({
         </Link>
       </div>
 
+      <div className="filter-tabs">
+        {statusFilters.map((f) => {
+          const href = f.value
+            ? `/documents?status=${f.value}${type ? `&type=${type}` : ""}`
+            : `/documents${type ? `?type=${type}` : ""}`;
+          const isActive = f.value === "" ? !status : status === f.value;
+          return (
+            <Link
+              key={f.value}
+              href={href}
+              className={`filter-tab ${isActive ? "active" : ""}`}
+            >
+              {f.label}
+            </Link>
+          );
+        })}
+      </div>
+
       {(status || type) && (
         <div className="flex items-center gap-2 flex-wrap">
           {status && (
-            <Link href="/documents" className="btn btn-ghost" style={{ fontSize: 11, padding: "3px 10px" }}>
+            <Link href={type ? `/documents?type=${type}` : "/documents"} className="btn btn-ghost" style={{ fontSize: 11, padding: "3px 10px" }}>
               {statusLabels[status] || status}
               <IconX size={12} />
             </Link>
           )}
           {type && (
-            <Link href="/documents" className="btn btn-ghost" style={{ fontSize: 11, padding: "3px 10px" }}>
+            <Link href={status ? `/documents?status=${status}` : "/documents"} className="btn btn-ghost" style={{ fontSize: 11, padding: "3px 10px" }}>
               {typeLabels[type] || type}
               <IconX size={12} />
             </Link>

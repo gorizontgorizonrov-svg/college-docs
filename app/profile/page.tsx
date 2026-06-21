@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { getProfile, updateProfile, uploadAvatar, changePassword } from "@/actions/profile";
+import { getProfile, updateProfile, uploadAvatar, changePassword, getMyProfileDocuments } from "@/actions/profile";
 import {
   IconUser,
   IconMail,
@@ -18,6 +19,8 @@ import {
   IconCheck,
   IconLoader2,
   IconShield,
+  IconFileText,
+  IconPlus,
 } from "@tabler/icons-react";
 
 const profileSchema = z.object({
@@ -45,6 +48,16 @@ const roleLabels: Record<string, string> = {
   SIGNER: "Подписант", REGISTRAR: "Регистратор", ADMIN: "Администратор",
 };
 
+const statusLabels: Record<string, string> = {
+  DRAFT: "Черновик", IN_APPROVAL: "На согласовании", APPROVED: "Утверждён",
+  REJECTED: "Отклонён", ARCHIVED: "В архиве",
+};
+
+const statusBadgeClass: Record<string, string> = {
+  DRAFT: "db-gray", IN_APPROVAL: "db-blue", APPROVED: "db-green",
+  REJECTED: "db-red", ARCHIVED: "db-amber",
+};
+
 export default function ProfilePage() {
   const { data: session, update } = useSession();
   const router = useRouter();
@@ -58,6 +71,9 @@ export default function ProfilePage() {
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [myDocs, setMyDocs] = useState<any[]>([]);
+  const [docsFilter, setDocsFilter] = useState("");
+  const [docsLoading, setDocsLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -98,8 +114,13 @@ export default function ProfilePage() {
       }
     }).catch(() => {
       setError("Ошибка загрузки профиля");
-    }).finally(() => {
+    });
+
+    getMyProfileDocuments(session.user.id).then((docs) => {
+      setMyDocs(docs);
+    }).catch(() => {}).finally(() => {
       setLoading(false);
+      setDocsLoading(false);
     });
   }, [session, router, reset]);
 
@@ -347,6 +368,67 @@ export default function ProfilePage() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* MY DOCUMENTS */}
+      <div className="glass-card" style={{ marginTop: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 6 }}>
+            <IconFileText size={16} /> Мои документы
+          </div>
+          <Link href="/documents/create" className="btn btn-navy" style={{ fontSize: 11, padding: "4px 12px" }}>
+            <IconPlus size={13} />
+            Создать
+          </Link>
+        </div>
+
+        <div className="filter-tabs" style={{ marginBottom: 12 }}>
+          {["", "DRAFT", "IN_APPROVAL", "APPROVED", "REJECTED", "ARCHIVED"].map((f) => {
+            const labels: Record<string, string> = {
+              "": "Все", DRAFT: "Черновики", IN_APPROVAL: "На согласовании",
+              APPROVED: "Утверждённые", REJECTED: "Отклонённые", ARCHIVED: "Архивные",
+            };
+            return (
+              <button
+                key={f}
+                onClick={() => setDocsFilter(f)}
+                className={`filter-tab ${docsFilter === f ? "active" : ""}`}
+                style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 12 }}
+              >
+                {labels[f]}
+              </button>
+            );
+          })}
+        </div>
+
+        {docsLoading ? (
+          <div style={{ display: "flex", justifyContent: "center", padding: 20 }}>
+            <div className="spinner" />
+          </div>
+        ) : myDocs.length === 0 ? (
+          <div className="empty-state" style={{ padding: "20px 10px" }}>
+            <IconFileText size={24} style={{ color: "var(--text-muted)", marginBottom: 6, display: "block", margin: "0 auto 6px" }} />
+            <p>У вас пока нет документов</p>
+          </div>
+        ) : (
+          <div style={{ display: "grid", gap: 6 }}>
+            {myDocs
+              .filter((doc) => !docsFilter || doc.status === docsFilter)
+              .map((doc) => (
+                <Link key={doc.id} href={`/documents/${doc.id}`} className="doc-item">
+                  <div className="doc-info" style={{ flex: 1 }}>
+                    <div className="doc-name">{doc.title}</div>
+                    <div className="doc-type">
+                      {doc.number || "—"} · {new Date(doc.createdAt).toLocaleDateString("ru-RU")}
+                    </div>
+                  </div>
+                  <div className={`doc-badge ${statusBadgeClass[doc.status] || "db-gray"}`}>
+                    {statusLabels[doc.status] || doc.status}
+                  </div>
+                </Link>
+              ))}
+          </div>
+        )}
       </div>
     </div>
   );

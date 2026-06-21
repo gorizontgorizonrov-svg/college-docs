@@ -160,7 +160,7 @@ export default async function DashboardPage() {
           <div className="stab-val">{stats.draftDocuments}</div>
           <div className="stab-sub">Требуют внимания</div>
         </Link>
-        <Link href="/documents/pending" className="stab">
+        <Link href="/documents?status=IN_APPROVAL" className="stab">
           <div className="stab-header">
             <div className="stab-icon ic-purple"><IconSend size={14} /></div>
             <span className="stab-lbl">На согласовании</span>
@@ -206,7 +206,7 @@ export default async function DashboardPage() {
               {isAdmin ? "Панель администратора" : isValidator ? "Ожидают решения" : isRegistrar ? "Быстрые действия" : "Мои документы"}
             </div>
             {(isAdmin || isValidator) && (
-              <Link href={isAdmin ? "/admin/workflows" : "/documents/pending"} className="ch-r">
+              <Link href={isAdmin ? "/admin/workflows" : "/documents?status=IN_APPROVAL"} className="ch-r">
                 {isAdmin ? "Управление шаблонами →" : "Все →"}
               </Link>
             )}
@@ -246,7 +246,7 @@ export default async function DashboardPage() {
             {isValidator && (
               <>
                 {stats.pendingApprovals > 0 && (
-                  <Link href="/documents/pending" className="doc-item" style={{ padding: "10px 0" }}>
+                  <Link href="/documents?status=IN_APPROVAL" className="doc-item" style={{ padding: "10px 0" }}>
                     <div className="doc-ico ic-purple"><IconAlertCircle size={14} /></div>
                     <div className="doc-info">
                       <div className="doc-type">Ожидают решения</div>
@@ -346,10 +346,10 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN — Recent documents */}
+        {/* RIGHT COLUMN — My Documents */}
         <div className="card anim-slide-up">
           <div className="ch">
-            <div className="ch-l"><IconClock size={14} />Последние документы</div>
+            <div className="ch-l"><IconFileText size={14} />Мои документы</div>
             <Link href="/documents" className="ch-r">Все документы →</Link>
           </div>
           <div className="cb">
@@ -364,7 +364,6 @@ export default async function DashboardPage() {
                 <div className="doc-info">
                   <div className="doc-type">
                     {typeLabels[doc.type] || doc.type}
-                    {doc.authorId === session.user.id ? "" : ""}
                   </div>
                   <div className="doc-name">{doc.title}</div>
                 </div>
@@ -375,7 +374,7 @@ export default async function DashboardPage() {
             )) : (
               <div className="empty-state" style={{ padding: "20px 10px" }}>
                 <IconFileText size={24} style={{ color: "var(--text-muted)", marginBottom: 6, display: "block", margin: "0 auto 6px" }} />
-                <p>Нет документов</p>
+                <p>У вас пока нет документов</p>
               </div>
             )}
           </div>
