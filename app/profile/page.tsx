@@ -226,7 +226,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 12, alignItems: "start" }}>
+      <div className="profile-grid">
         {/* Left column — Avatar card */}
         <div className="glass-card" style={{ textAlign: "center" }}>
           <div style={{ position: "relative", display: "inline-block", marginBottom: 12 }}>

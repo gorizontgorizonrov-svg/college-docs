@@ -16,9 +16,6 @@ import {
   IconLogout,
   IconSearch,
   IconChevronDown,
-  IconList,
-  IconEdit,
-  IconBook,
   IconPlus,
   IconSettings,
   IconUsers,
@@ -210,16 +207,6 @@ const sidebarSections: {
   labelKey: string;
   items: { href: string; labelKey: string; Icon: any; adminOnly?: boolean; createOnly?: boolean }[];
 }[] = [
-  {
-    labelKey: "sidebar.documents",
-    items: [
-      { href: "/documents", labelKey: "nav.documents", Icon: IconFileText },
-      { href: "/documents?type=ORDER", labelKey: "sidebar.orders", Icon: IconFileText },
-      { href: "/documents?type=DIRECTIVE", labelKey: "sidebar.directives", Icon: IconList },
-      { href: "/documents?type=MEMO", labelKey: "sidebar.memos", Icon: IconEdit },
-      { href: "/documents?type=CONTRACT", labelKey: "sidebar.contracts", Icon: IconBook },
-    ],
-  },
   {
     labelKey: "sidebar.quickActions",
     items: [
