@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getMyDocuments } from "@/actions/documents";
-import { IconPlus, IconFileText, IconDownload, IconEye, IconX } from "@tabler/icons-react";
+import { IconPlus, IconFileText, IconDownload, IconEye, IconX, IconSearch } from "@tabler/icons-react";
 import { ClickableRow } from "@/components/ClickableRow";
 import type { DocumentStatus, InternalDocType } from "@prisma/client";
 
@@ -44,15 +44,16 @@ const statusFilters = [
 export default async function DocumentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; type?: string }>;
+  searchParams: Promise<{ status?: string; type?: string; search?: string }>;
 }) {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const { status, type } = await searchParams;
+  const { status, type, search } = await searchParams;
   const documents = await getMyDocuments(session.user.id, {
     status: (status as DocumentStatus) || undefined,
     type: (type as InternalDocType) || undefined,
+    search: search || undefined,
   });
 
   return (
@@ -65,11 +66,27 @@ export default async function DocumentsPage({
         </Link>
       </div>
 
+      <form className="relative" method="GET" action="/documents">
+        <IconSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)", pointerEvents: "none" }} />
+        <input
+          name="search"
+          defaultValue={search || ""}
+          className="input pl-10 pr-4"
+          placeholder="Поиск по названию..."
+          style={{ width: "100%" }}
+        />
+        {search && (
+          <Link href="/documents" className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)", display: "flex" }}>
+            <IconX size={14} />
+          </Link>
+        )}
+      </form>
+
       <div className="filter-tabs">
         {statusFilters.map((f) => {
           const href = f.value
-            ? `/documents?status=${f.value}${type ? `&type=${type}` : ""}`
-            : `/documents${type ? `?type=${type}` : ""}`;
+            ? `/documents?status=${f.value}${type ? `&type=${type}` : ""}${search ? `&search=${search}` : ""}`
+            : `/documents${type ? `?type=${type}` : ""}${search ? `${type ? "&" : "?"}search=${search}` : ""}`;
           const isActive = f.value === "" ? !status : status === f.value;
           return (
             <Link

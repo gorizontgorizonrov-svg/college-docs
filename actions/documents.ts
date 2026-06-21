@@ -133,7 +133,7 @@ export async function getDocumentById(id: string) {
 
 export async function getMyDocuments(
   userId: string,
-  filters?: { status?: DocumentStatus; type?: InternalDocType }
+  filters?: { status?: DocumentStatus; type?: InternalDocType; search?: string }
 ) {
   const session = await auth();
   if (!session?.user) throw new Error("Не авторизован");
@@ -141,6 +141,7 @@ export async function getMyDocuments(
   const where: Prisma.InternalDocumentWhereInput = { authorId: userId };
   if (filters?.status) where.status = filters.status;
   if (filters?.type) where.type = filters.type;
+  if (filters?.search) where.title = { contains: filters.search, mode: "insensitive" };
 
   try {
     return await prisma.internalDocument.findMany({

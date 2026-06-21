@@ -81,6 +81,7 @@ export default function CreateDocumentPage() {
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const {
     register,
@@ -128,30 +129,40 @@ export default function CreateDocumentPage() {
     setIsDragOver(false);
   }, []);
 
+  const uploadFile = useCallback((f: File): Promise<{ url: string; info: { originalName: string; storedName: string; mimeType: string; fileSize: number } }> => {
+    return new Promise((resolve, reject) => {
+      const formData = new FormData();
+      formData.append("file", f);
+      const xhr = new XMLHttpRequest();
+      xhr.upload.addEventListener("progress", (e) => {
+        if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100));
+      });
+      xhr.addEventListener("load", () => {
+        try {
+          const json = JSON.parse(xhr.responseText);
+          if (json.success) resolve({ url: json.url, info: { originalName: json.fileName, storedName: json.storedName, mimeType: json.mimeType, fileSize: json.fileSize } });
+          else reject(new Error(json.error || "Ошибка загрузки файла"));
+        } catch { reject(new Error("Ошибка ответа сервера")); }
+      });
+      xhr.addEventListener("error", () => reject(new Error("Ошибка сети")));
+      xhr.open("POST", "/api/upload");
+      xhr.send(formData);
+    });
+  }, []);
+
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     setError(null);
+    setUploadProgress(0);
 
     try {
       let fileUrl: string | undefined;
       let fileInfo: { originalName: string; storedName: string; mimeType: string; fileSize: number } | undefined;
 
       if (file) {
-        const formData = new FormData();
-        formData.append("file", file);
-        const res = await fetch("/api/upload", { method: "POST", body: formData });
-        const json = await res.json();
-        if (json.success) {
-          fileUrl = json.url;
-          fileInfo = {
-            originalName: json.fileName,
-            storedName: json.storedName,
-            mimeType: json.mimeType,
-            fileSize: json.fileSize,
-          };
-        } else {
-          throw new Error(json.error || "Ошибка загрузки файла");
-        }
+        const result = await uploadFile(file);
+        fileUrl = result.url;
+        fileInfo = result.info;
       }
 
       const result = await createDocument({
@@ -168,6 +179,7 @@ export default function CreateDocumentPage() {
       setError(err instanceof Error ? err.message : "Ошибка при создании документа");
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(0);
     }
   };
 
@@ -283,28 +295,38 @@ export default function CreateDocumentPage() {
               <p className="text-xs mb-2" style={{ color: "var(--danger)" }}>{fileError}</p>
             )}
             {file ? (
-              <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "var(--bg-secondary)", border: "1px solid var(--glass-border)" }}>
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "var(--bg-hover)" }}>
-                  {filePreview ? (
-                    <img src={filePreview} alt="preview" className="w-10 h-10 rounded-lg object-cover" />
-                  ) : (
-                    getFileIcon(file.type, 20)
-                  )}
+              <div>
+                <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "var(--bg-secondary)", border: "1px solid var(--glass-border)" }}>
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "var(--bg-hover)" }}>
+                    {filePreview ? (
+                      <img src={filePreview} alt="preview" className="w-10 h-10 rounded-lg object-cover" />
+                    ) : (
+                      getFileIcon(file.type, 20)
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{file.name}</p>
+                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>{formatFileSize(file.size)}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { handleFileSelect(null); }}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ color: "var(--text-muted)" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-hover)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                  >
+                    <IconX size={16} />
+                  </button>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{file.name}</p>
-                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>{formatFileSize(file.size)}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => { handleFileSelect(null); }}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{ color: "var(--text-muted)" }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-hover)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-                >
-                  <IconX size={16} />
-                </button>
+                {uploadProgress > 0 && (
+                  <div style={{ marginTop: 8 }}>
+                    <div style={{ height: 4, borderRadius: 2, background: "var(--bg-hover)", overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${uploadProgress}%`, background: "var(--accent)", borderRadius: 2, transition: "width .3s" }} />
+                    </div>
+                    <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4, textAlign: "right" }}>{uploadProgress}%</p>
+                  </div>
+                )}
               </div>
             ) : (
               <div
