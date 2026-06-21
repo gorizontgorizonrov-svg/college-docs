@@ -291,6 +291,48 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
           </>
         )}
       </aside>
+
+      {/* Mobile bottom sheet */}
+      <div className={`sidebar-sheet ${!collapsed ? "sidebar-sheet-open" : ""}`}>
+        <div className="sidebar-sheet-handle" />
+        <div className="sidebar-sheet-header">
+          <div className="sidebar-sheet-title">{t("nav.menu")}</div>
+          <button className="sidebar-sheet-close" onClick={onToggle}>
+            <IconX size={18} />
+          </button>
+        </div>
+        <div className="sidebar-sheet-body">
+          {filteredSections.map((section) => (
+            <div key={section.labelKey}>
+              <div className="sb-label">{t(section.labelKey)}</div>
+              {section.items.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`sb-item ${isActive(item.href) ? "on" : ""}`}
+                  onClick={onToggle}
+                >
+                  <item.Icon size={18} className="sb-icon" />
+                  <span className="sb-text">{t(item.labelKey)}</span>
+                </Link>
+              ))}
+            </div>
+          ))}
+          {isAdmin && (
+            <>
+              <div className="sb-label">{t("sidebar.administration")}</div>
+              <Link href="/admin/employees" className={`sb-item ${isActive("/admin/employees") ? "on" : ""}`} onClick={onToggle}>
+                <IconUsers size={18} className="sb-icon" />
+                <span className="sb-text">{t("sidebar.employees")}</span>
+              </Link>
+              <Link href="/admin/audit" className={`sb-item ${isActive("/admin/audit") ? "on" : ""}`} onClick={onToggle}>
+                <IconClipboardList size={18} className="sb-icon" />
+                <span className="sb-text">{t("sidebar.audit")}</span>
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
     </>
   );
 }
