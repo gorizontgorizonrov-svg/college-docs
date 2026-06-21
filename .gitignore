@@ -60,3 +60,7 @@ add_listings.py
 
 # Screenshots
 /screenshots
+
+# Temp files
+*.py
+fuck_doc_text.txt
