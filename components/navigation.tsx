@@ -208,6 +208,9 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
   const { t } = useTranslation();
   const role = session?.user?.role || "";
   const isAdmin = role === "ADMIN";
+  const canCreate = ["INITIATOR", "VALIDATOR", "ADMIN"].includes(role);
+  const canApprove = ["VALIDATOR", "SIGNER", "ADMIN"].includes(role);
+  const canRegister = ["REGISTRAR", "ADMIN"].includes(role);
 
   const isActive = (href: string) => {
     if (href.includes("?")) {
@@ -228,12 +231,34 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
         {!collapsed && (
           <>
             <div className="sb-label">{t("sidebar.quickActions")}</div>
-            <Link href="/documents/create" className={`sb-item ${isActive("/documents/create") ? "on" : ""}`}>
-              <IconPlus size={18} className="sb-icon" />
-              <span className="sb-text">{t("sidebar.createDocument")}</span>
+            {canCreate && (
+              <Link href="/documents/create" className={`sb-item ${isActive("/documents/create") ? "on" : ""}`}>
+                <IconPlus size={18} className="sb-icon" />
+                <span className="sb-text">{t("sidebar.createDocument")}</span>
+              </Link>
+            )}
+            <Link href="/documents" className={`sb-item ${isActive("/documents") ? "on" : ""}`}>
+              <IconFileText size={18} className="sb-icon" />
+              <span className="sb-text">{t("sidebar.myDocuments")}</span>
+            </Link>
+            {canApprove && (
+              <Link href="/documents/pending" className={`sb-item ${isActive("/documents/pending") ? "on" : ""}`}>
+                <IconClipboardList size={18} className="sb-icon" />
+                <span className="sb-text">{t("sidebar.pendingApproval")}</span>
+              </Link>
+            )}
+            {canRegister && (
+              <Link href="/incoming" className={`sb-item ${isActive("/incoming") ? "on" : ""}`}>
+                <IconInbox size={18} className="sb-icon" />
+                <span className="sb-text">{t("sidebar.incoming")}</span>
+              </Link>
+            )}
+            <Link href="/archive" className={`sb-item ${isActive("/archive") ? "on" : ""}`}>
+              <IconArchive size={18} className="sb-icon" />
+              <span className="sb-text">{t("nav.archive")}</span>
             </Link>
             {isAdmin && (
-              <Link href="/admin/templates" className={`sb-item ${isActive("/admin/templates") ? "on" : ""}`}>
+              <Link href="/admin/workflows" className={`sb-item ${isActive("/admin/workflows") ? "on" : ""}`}>
                 <IconTemplate size={18} className="sb-icon" />
                 <span className="sb-text">{t("sidebar.templates")}</span>
               </Link>
@@ -243,11 +268,29 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
 
         {collapsed && (
           <>
-            <Link href="/documents/create" className={`sb-item ${isActive("/documents/create") ? "on" : ""}`} title={t("sidebar.createDocument")}>
-              <IconPlus size={18} className="sb-icon" />
+            {canCreate && (
+              <Link href="/documents/create" className={`sb-item ${isActive("/documents/create") ? "on" : ""}`} title={t("sidebar.createDocument")}>
+                <IconPlus size={18} className="sb-icon" />
+              </Link>
+            )}
+            <Link href="/documents" className={`sb-item ${isActive("/documents") ? "on" : ""}`} title={t("sidebar.myDocuments")}>
+              <IconFileText size={18} className="sb-icon" />
+            </Link>
+            {canApprove && (
+              <Link href="/documents/pending" className={`sb-item ${isActive("/documents/pending") ? "on" : ""}`} title={t("sidebar.pendingApproval")}>
+                <IconClipboardList size={18} className="sb-icon" />
+              </Link>
+            )}
+            {canRegister && (
+              <Link href="/incoming" className={`sb-item ${isActive("/incoming") ? "on" : ""}`} title={t("sidebar.incoming")}>
+                <IconInbox size={18} className="sb-icon" />
+              </Link>
+            )}
+            <Link href="/archive" className={`sb-item ${isActive("/archive") ? "on" : ""}`} title={t("nav.archive")}>
+              <IconArchive size={18} className="sb-icon" />
             </Link>
             {isAdmin && (
-              <Link href="/admin/templates" className={`sb-item ${isActive("/admin/templates") ? "on" : ""}`} title={t("sidebar.templates")}>
+              <Link href="/admin/workflows" className={`sb-item ${isActive("/admin/workflows") ? "on" : ""}`} title={t("sidebar.templates")}>
                 <IconTemplate size={18} className="sb-icon" />
               </Link>
             )}

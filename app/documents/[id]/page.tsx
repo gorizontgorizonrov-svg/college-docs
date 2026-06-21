@@ -132,7 +132,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
               <IconDownload size={16} />{getFileLabel(fileAttachments, doc.fileUrl)}
             </a>
           )}
-          <PrintButton />
+          <PrintButton fileUrl={doc.fileUrl} />
           {myPendingApproval && (
             <>
               <form action={async () => {

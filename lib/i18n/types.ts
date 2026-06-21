@@ -35,6 +35,9 @@ export type TranslationDict = {
     rejected: string;
     createDocument: string;
     templates: string;
+    myDocuments: string;
+    pendingApproval: string;
+    incoming: string;
     employees: string;
     audit: string;
   };
