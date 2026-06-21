@@ -1665,13 +1665,13 @@ a.footer-link:hover { color: var(--accent-hover); }
   background: rgba(255, 255, 255, 0.5);
 }
 
-/* ======== MOBILE LAYOUT (MobileLayout wrapper) ======== */
+/* ======== MOBILE vs DESKTOP LAYOUTS ======== */
+.mobile-only { display: none; }
+.desktop-only { display: block; }
+
 @media (max-width: 639px) {
-  .app > .topbar,
-  .app > .layout,
-  .app > .footer {
-    display: none;
-  }
+  .mobile-only { display: block; }
+  .desktop-only { display: none; }
 }
 
 /* ======== MOBILE-OPTIMIZED TABLES → CARDS ======== */
