@@ -116,6 +116,7 @@ export default async function RootLayout({
             `,
           }}
         />
+        <meta name="google-site-verification" content="1067aabbcf4595ce" />
         <link rel="icon" href="/images/college-logo.svg" />
         <link rel="apple-touch-icon" href="/icon-192.svg" />
         <script

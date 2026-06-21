@@ -8,7 +8,7 @@ import AnimatedBackground from "./AnimatedBackground";
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = useCallback(() => {
     setSidebarOpen((prev) => !prev);

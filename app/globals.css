@@ -920,22 +920,91 @@ textarea.input { min-height: 100px; resize: vertical; }
   .profile-grid { grid-template-columns: 1fr; gap: 8px; }
   .admin-grid { grid-template-columns: 1fr; gap: 5px; }
 
+  .topbar {
+    padding: 0 12px;
+    height: 48px;
+    gap: 4px;
+  }
+  .topbar-left { gap: 4px; }
+  .logo {
+    gap: 6px;
+    padding-right: 10px;
+    margin-right: 8px;
+  }
+  .logo-mark { width: 26px; height: 26px; font-size: 8px; border-radius: 6px; }
+  .logo-name { font-size: 10px; }
+  .logo-sub { display: none; }
+  .nav { gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .nav::-webkit-scrollbar { display: none; }
+  .ni { padding: 5px 8px; font-size: 11px; flex-shrink: 0; min-height: 44px; }
+  .ni span { display: none; }
+  .topbar-right { gap: 4px; }
+  .ib { width: 28px; height: 28px; font-size: 13px; min-height: 44px; min-width: 44px; }
+  .dv { display: none; }
+  .user-pill { gap: 4px; padding: 3px 6px 3px 3px; }
+  .user-pill .uname,
+  .user-pill .urole,
+  .user-pill .dv { display: none; }
+  .user-pill .uav { width: 22px; height: 22px; font-size: 8px; }
+  .user-pill .IconChevronDown { display: none; }
+
+  .st { padding: 10px 12px; }
+  .st-val { font-size: 18px; }
+
+  .main { padding: 10px 10px; }
+  .card { border-radius: 10px; }
+  .ch { padding: 8px 12px; }
+  .ch-left { font-size: 10px; }
+  .cb { padding: 8px 12px; }
+  .glass-card { padding: 12px; border-radius: 10px; }
+  .doc-h1 { font-size: 15px; }
+  .doc-top { flex-direction: column; gap: 8px; }
+  .btn { padding: 5px 10px; font-size: 11px; border-radius: 6px; min-height: 44px; }
+
+  .doc-item { padding: 6px 0; gap: 6px; }
+  .doc-name { font-size: 11px; white-space: normal; overflow: visible; }
+  .doc-type { font-size: 9px; }
+  .doc-badge { font-size: 9px; padding: 1px 6px; }
+
+  .table-card { border-radius: 10px; }
+  .table-card th { padding: 6px 8px; font-size: 9px; }
+  .table-card td { padding: 6px 8px; font-size: 11px; }
+
+  .stab { padding: 10px 12px; border-radius: 10px; }
+  .stab-header { margin-bottom: 4px; }
+  .stab-icon { width: 26px; height: 26px; font-size: 12px; }
+  .stab-val { font-size: 18px; }
+  .stab-sub { font-size: 9px; }
+
+  .ag-item { padding: 8px; border-radius: 8px; }
+  .ag-icon { width: 24px; height: 24px; font-size: 11px; }
+  .ag-lbl { font-size: 10px; }
+
+  .profile-banner { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
+  .pb-av { width: 32px; height: 32px; font-size: 12px; }
+  .pb-name { font-size: 13px; }
+  .pb-role { font-size: 10px; }
+  .pb-actions { width: 100%; justify-content: flex-end; }
+
+  .filter-tabs { gap: 3px; }
+  .filter-tab { padding: 3px 10px; font-size: 10px; }
+
+  .empty-state { padding: 20px 12px; }
+  .empty-state p { font-size: 11px; }
+
+  .drawer { width: 280px; }
+
+  .notif-dropdown { width: 280px; right: -60px; }
+
   .footer-inner {
     grid-template-columns: 1fr 1fr;
-    gap: 24px;
+    gap: 16px;
+    padding: 20px 16px 16px;
   }
 
-  .glass-table { overflow-x: auto; position: relative; }
-  .table-card { overflow-x: auto; position: relative; }
-  .glass-table::after,
-  .table-card::after {
-    content: '';
-    position: absolute;
-    top: 0; right: 0; bottom: 0;
-    width: 24px;
-    background: linear-gradient(90deg, transparent, var(--bg-page));
-    pointer-events: none;
-    opacity: 0.5;
+  .glass-table, .table-card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
