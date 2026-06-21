@@ -102,7 +102,7 @@ export function NotificationDropdown() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-80 md:w-96 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] shadow-xl z-50">
+        <div className="notif-dropdown absolute right-0 top-full mt-2 w-80 md:w-96 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] shadow-xl z-50">
           <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)]">
             <h3 className="font-semibold text-[var(--text-primary)]">Уведомления</h3>
             {unreadCount > 0 && (
