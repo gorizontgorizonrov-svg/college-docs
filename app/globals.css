@@ -1801,7 +1801,12 @@ a.footer-link:hover { color: var(--accent-hover); }
 .landing-overlay {
   position: absolute; inset: 0;
   background: url('/landing.jpg') center/cover no-repeat;
-  opacity: .35;
+}
+
+.landing-overlay::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,.3) 50%, rgba(0,0,0,.15) 100%);
 }
 
 .landing-body {
@@ -1823,18 +1828,21 @@ a.footer-link:hover { color: var(--accent-hover); }
 .landing-logo {
   width: 64px; height: 64px;
   display: flex; align-items: center; justify-content: center;
-  background: var(--accent); color: #fff;
+  background: rgba(255,255,255,.15); backdrop-filter: blur(8px);
+  color: #fff; border: 1px solid rgba(255,255,255,.2);
   font-size: 20px; font-weight: 800;
   border-radius: 16px; letter-spacing: 1px;
 }
 
 .landing-title {
   font-size: 32px; font-weight: 700;
-  color: var(--text-primary); margin: 0;
+  color: #fff; margin: 0;
+  text-shadow: 0 2px 12px rgba(0,0,0,.4);
 }
 
 .landing-subtitle {
-  font-size: 14px; color: var(--text-muted); margin: 4px 0 0;
+  font-size: 14px; color: rgba(255,255,255,.7); margin: 4px 0 0;
+  text-shadow: 0 1px 6px rgba(0,0,0,.3);
 }
 
 .landing-go {
