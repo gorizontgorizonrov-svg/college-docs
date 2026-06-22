@@ -1789,3 +1789,79 @@ a.footer-link:hover { color: var(--accent-hover); }
   opacity: 1;
   transition: opacity .2s;
 }
+
+/* ======== LANDING (титульная страница) ======== */
+.landing {
+  position: fixed; inset: 0;
+  display: flex;
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+
+.landing-overlay {
+  position: absolute; inset: 0;
+  background: url('/landing.jpg') center/cover no-repeat;
+  opacity: .35;
+}
+
+.landing-body {
+  position: relative;
+  display: flex; flex-direction: column;
+  width: 100%; padding: 48px 56px;
+}
+
+.landing-content {
+  flex: 1;
+  display: flex; align-items: center;
+}
+
+.landing-brand {
+  display: flex; align-items: center; gap: 16px;
+  animation: fadeUp .8s ease forwards;
+}
+
+.landing-logo {
+  width: 64px; height: 64px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent); color: #fff;
+  font-size: 20px; font-weight: 800;
+  border-radius: 16px; letter-spacing: 1px;
+}
+
+.landing-title {
+  font-size: 32px; font-weight: 700;
+  color: var(--text-primary); margin: 0;
+}
+
+.landing-subtitle {
+  font-size: 14px; color: var(--text-muted); margin: 4px 0 0;
+}
+
+.landing-go {
+  align-self: flex-end;
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 40px;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: 60px;
+  font-size: 22px; font-weight: 700; letter-spacing: 4px;
+  cursor: pointer; transition: all .25s ease;
+  animation: fadeUp .8s ease .3s both;
+}
+
+.landing-go:hover {
+  transform: scale(1.04);
+  box-shadow: 0 8px 32px rgba(0,0,0,.25);
+}
+
+.landing-go:active {
+  transform: scale(.97);
+}
+
+@media (max-width: 600px) {
+  .landing-body {
+    padding: 24px; justify-content: center;
+  }
+  .landing-brand { flex-direction: column; text-align: center; }
+  .landing-title { font-size: 24px; }
+  .landing-go { align-self: center; padding: 14px 32px; font-size: 18px; }
+}
