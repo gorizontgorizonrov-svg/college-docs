@@ -15,7 +15,7 @@ const protectedRoutes = Object.keys(roleBasedRoutes);
 
 export default auth((req) => {
   const path = req.nextUrl.pathname;
-  if (path === "/login" || path === "/") return NextResponse.next();
+  if (path === "/login" || path === "/" || path === "/about-author") return NextResponse.next();
 
   const session = req.auth;
   if (!session) {
