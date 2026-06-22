@@ -231,6 +231,13 @@ const en: TranslationDict = {
     terms: "Terms of use",
     regulations: "DMS Regulations",
     rights: "All rights reserved.",
+    aboutAuthor: "About the Author",
+    authorName: "Khurtazhiev Oybek",
+    authorGroup: "POVTASk-3-23",
+    authorTheme: "Automation of Document Management at Jalal-Abad College",
+    authorSupervisor: "Supervisor: Senior Lecturer, POVTAS Department",
+    contactPhone: "+996 707 971 260",
+    contactEmail: "gorizontgorizonrov@gmail.com",
   },
   theme: {
     light: "Light theme",

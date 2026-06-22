@@ -231,6 +231,13 @@ const ru: TranslationDict = {
     terms: "Условия использования",
     regulations: "Регламент СЭД",
     rights: "Все права защищены.",
+    aboutAuthor: "Об авторе",
+    authorName: "Хуртажиев Ойбек",
+    authorGroup: "ПОВТАСк-3-23",
+    authorTheme: "Автоматизация документооборота в Жалал-Абадском колледже",
+    authorSupervisor: "Руководитель: ст. преп. кафедры ПОВТАС",
+    contactPhone: "+996 707 971 260",
+    contactEmail: "gorizontgorizonrov@gmail.com",
   },
   theme: {
     light: "Светлая тема",

@@ -231,6 +231,13 @@ const zh: TranslationDict = {
     terms: "使用条款",
     regulations: "文件管理规章",
     rights: "保留所有权利。",
+    aboutAuthor: "关于作者",
+    authorName: "胡尔塔日耶夫·奥伊别克",
+    authorGroup: "ПОВТАСк-3-23",
+    authorTheme: "贾拉拉巴德学院文件流转自动化",
+    authorSupervisor: "导师：应用计算机科学与自动化系高级讲师",
+    contactPhone: "+996 707 971 260",
+    contactEmail: "gorizontgorizonrov@gmail.com",
   },
   theme: {
     light: "浅色主题",

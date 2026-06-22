@@ -229,6 +229,13 @@ export type TranslationDict = {
     terms: string;
     regulations: string;
     rights: string;
+    aboutAuthor: string;
+    authorName: string;
+    authorGroup: string;
+    authorTheme: string;
+    authorSupervisor: string;
+    contactPhone: string;
+    contactEmail: string;
   };
   theme: {
     light: string;

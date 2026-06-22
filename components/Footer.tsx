@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useTranslation } from "@/lib/i18n/client";
+import { IconPhone, IconMail, IconMapPin, IconUser, IconSchool, IconBook, IconMicroscope } from "@tabler/icons-react";
 
 export function Footer() {
   const { t } = useTranslation();
@@ -35,9 +36,15 @@ export function Footer() {
 
         <div className="footer-col">
           <p className="footer-col-title">{t("footer.support")}</p>
-          <span className="footer-link">it@jak.kg</span>
-          <span className="footer-link">+996 (XXX) XX-XX-XX</span>
-          <span className="footer-link">г. Жалал-Абад</span>
+          <span className="footer-link" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <IconMail size={14} /> {t("footer.contactEmail")}
+          </span>
+          <span className="footer-link" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <IconPhone size={14} /> {t("footer.contactPhone")}
+          </span>
+          <span className="footer-link" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <IconMapPin size={14} /> г. Жалал-Абад
+          </span>
         </div>
 
         <div className="footer-col">
@@ -45,6 +52,22 @@ export function Footer() {
           <span className="footer-link">{t("footer.privacy")}</span>
           <span className="footer-link">{t("footer.terms")}</span>
           <span className="footer-link">{t("footer.regulations")}</span>
+
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border-subtle)" }}>
+            <p className="footer-col-title" style={{ fontSize: 12, marginBottom: 8 }}>{t("footer.aboutAuthor")}</p>
+            <span className="footer-link" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <IconUser size={14} /> {t("footer.authorName")}
+            </span>
+            <span className="footer-link" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <IconSchool size={14} /> {t("footer.authorGroup")}
+            </span>
+            <span className="footer-link" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <IconBook size={14} /> {t("footer.authorTheme")}
+            </span>
+            <span className="footer-link" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <IconMicroscope size={14} /> {t("footer.authorSupervisor")}
+            </span>
+          </div>
         </div>
       </div>
 

@@ -231,6 +231,13 @@ const ky: TranslationDict = {
     terms: "Колдонуу шарттары",
     regulations: "ЭДС Регламенти",
     rights: "Бардык укуктар корголгон.",
+    aboutAuthor: "Автор жөнүндө",
+    authorName: "Хуртажиев Ойбек",
+    authorGroup: "ПОВТАСк-3-23",
+    authorTheme: "Жалал-Абад колледжинде документ жүгүртүүнү автоматташтыруу",
+    authorSupervisor: "Жетекчи: ПОВТАС кафедрасынын ага окутуучусу",
+    contactPhone: "+996 707 971 260",
+    contactEmail: "gorizontgorizonrov@gmail.com",
   },
   theme: {
     light: "Ачык тема",
