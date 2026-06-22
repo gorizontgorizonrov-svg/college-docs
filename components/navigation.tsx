@@ -23,11 +23,13 @@ import {
   IconMenu2,
   IconPlus,
   IconTemplate,
+  IconChecklist,
 } from "@tabler/icons-react";
 
 const navItems: { href: string; labelKey: string; Icon: any; badge?: boolean }[] = [
   { href: "/dashboard", labelKey: "nav.home", Icon: IconLayoutDashboard },
   { href: "/documents", labelKey: "nav.documents", Icon: IconFileText },
+  { href: "/assignments", labelKey: "nav.assignments", Icon: IconChecklist },
   { href: "/incoming", labelKey: "nav.incoming", Icon: IconInbox },
   { href: "/archive", labelKey: "nav.archive", Icon: IconArchive },
 ];
@@ -241,6 +243,10 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
               <IconFileText size={18} className="sb-icon" />
               <span className="sb-text">{t("sidebar.myDocuments")}</span>
             </Link>
+            <Link href="/assignments" className={`sb-item ${isActive("/assignments") ? "on" : ""}`}>
+              <IconChecklist size={18} className="sb-icon" />
+              <span className="sb-text">{t("sidebar.assignments")}</span>
+            </Link>
             {canApprove && (
               <Link href="/documents/pending" className={`sb-item ${isActive("/documents/pending") ? "on" : ""}`}>
                 <IconClipboardList size={18} className="sb-icon" />
@@ -275,6 +281,9 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
             )}
             <Link href="/documents" className={`sb-item ${isActive("/documents") ? "on" : ""}`} title={t("sidebar.myDocuments")}>
               <IconFileText size={18} className="sb-icon" />
+            </Link>
+            <Link href="/assignments" className={`sb-item ${isActive("/assignments") ? "on" : ""}`} title={t("sidebar.assignments")}>
+              <IconChecklist size={18} className="sb-icon" />
             </Link>
             {canApprove && (
               <Link href="/documents/pending" className={`sb-item ${isActive("/documents/pending") ? "on" : ""}`} title={t("sidebar.pendingApproval")}>

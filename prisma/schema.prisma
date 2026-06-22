@@ -51,6 +51,22 @@ enum IncomingStatus {
   ARCHIVED
 }
 
+enum AssignmentStatus {
+  PENDING
+  IN_PROGRESS
+  REPORTED
+  COMPLETED
+  OVERDUE
+  CANCELLED
+}
+
+enum AssignmentPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
 enum NotificationType {
   APPROVAL_REQUEST
   DOCUMENT_SIGNED
@@ -59,6 +75,13 @@ enum NotificationType {
   RESOLUTION_ASSIGNED
   DEADLINE_REMINDER
   SYSTEM
+  ASSIGNMENT_CREATED
+  ASSIGNMENT_REPORTED
+  ASSIGNMENT_CONFIRMED
+  ASSIGNMENT_REVISE_REQUESTED
+  ASSIGNMENT_COMPLETED
+  ASSIGNMENT_OVERDUE
+  ASSIGNMENT_CANCELLED
 }
 
 enum AuditAction {
@@ -75,6 +98,11 @@ enum AuditAction {
   EXPORT
   LOGIN
   DOWNLOAD
+  ASSIGNMENT_CREATE
+  ASSIGNMENT_UPDATE_STATUS
+  ASSIGNMENT_REPORT_SUBMIT
+  ASSIGNMENT_CONFIRM
+  ASSIGNMENT_REVISE
 }
 
 // ============ MODELS ============
@@ -97,6 +125,7 @@ model User {
   incomingResolutions  IncomingDocument[]   @relation("ResolutionAuthor")
   createdIncomingDocuments IncomingDocument[] @relation("IncomingCreator")
   uploadedFiles        FileAttachment[]
+  createdAssignments   Assignment[]      @relation("AssignmentAuthor")
 }
 
 model Position {
@@ -139,6 +168,7 @@ model Employee {
 
   digitalSignatures   DigitalSignature[]
   incomingExecutions  IncomingDocument[] @relation("IncomingExecutor")
+  assignments         Assignment[]       @relation("AssignmentExecutor")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -163,6 +193,7 @@ model InternalDocument {
   signatures DigitalSignature[]
   incomingResponseFor IncomingDocument[] @relation("IncomingResponse")
   fileAttachments     FileAttachment[]
+  assignments         Assignment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -287,12 +318,43 @@ model IncomingDocument {
   createdById      String
   createdBy        User              @relation("IncomingCreator", fields: [createdById], references: [id])
   fileAttachments  FileAttachment[]
+  assignments      Assignment[]
 
   createdAt DateTime @default(now())
 
   @@index([incomingNumber])
   @@index([status])
   @@index([executorId])
+}
+
+model Assignment {
+  id            String             @id @default(cuid())
+  title         String
+  description   String?
+  report        String?
+  status        AssignmentStatus   @default(PENDING)
+  priority      AssignmentPriority @default(MEDIUM)
+  deadline      DateTime?
+  completedAt   DateTime?
+  parentId      String?
+  authorId      String
+  executorId    String
+  documentId    String?
+  incomingId    String?
+
+  author    User               @relation("AssignmentAuthor", fields: [authorId], references: [id])
+  executor   Employee          @relation("AssignmentExecutor", fields: [executorId], references: [id])
+  document   InternalDocument? @relation(fields: [documentId], references: [id])
+  incoming   IncomingDocument? @relation(fields: [incomingId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([authorId])
+  @@index([executorId])
+  @@index([status])
+  @@index([deadline])
+  @@index([parentId])
 }
 
 model Notification {

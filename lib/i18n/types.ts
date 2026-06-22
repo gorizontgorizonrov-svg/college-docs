@@ -10,6 +10,7 @@ export type TranslationDict = {
     home: string;
     dashboard: string;
     documents: string;
+    assignments: string;
     incoming: string;
     archive: string;
     pending: string;
@@ -38,6 +39,7 @@ export type TranslationDict = {
     myDocuments: string;
     pendingApproval: string;
     incoming: string;
+    assignments: string;
     employees: string;
     audit: string;
   };
@@ -177,12 +179,15 @@ export type TranslationDict = {
     ARCHIVE: string;
     LOGIN: string;
     DOWNLOAD: string;
+    ASSIGNMENT_CREATE: string;
+    ASSIGNMENT_UPDATE_STATUS: string;
   };
   entity: {
     InternalDocument: string;
     IncomingDocument: string;
     DocumentApproval: string;
     DigitalSignature: string;
+    Assignment: string;
   };
   settings: {
     title: string;

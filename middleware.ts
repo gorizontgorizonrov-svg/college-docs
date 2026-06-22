@@ -7,6 +7,8 @@ const roleBasedRoutes: Record<string, string[]> = {
   "/documents/approval": ["VALIDATOR", "SIGNER"],
   "/incoming/register": ["REGISTRAR", "ADMIN"],
   "/incoming": ["REGISTRAR", "ADMIN", "SIGNER", "VALIDATOR"],
+  "/assignments": ["INITIATOR", "VALIDATOR", "SIGNER", "REGISTRAR", "ADMIN"],
+  "/assignments/create": ["SIGNER", "ADMIN"],
   "/admin": ["ADMIN"],
 };
 const protectedRoutes = Object.keys(roleBasedRoutes);

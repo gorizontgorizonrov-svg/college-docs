@@ -1045,8 +1045,12 @@ textarea.input { min-height: 100px; resize: vertical; }
 .badge-warning { background: var(--warning-bg); color: var(--warning); }
 .badge-danger { background: var(--danger-bg); color: var(--danger); }
 .badge-info { background: var(--bg-selected); color: var(--accent-hover); }
-.badge-neutral { background: var(--bg-secondary); color: var(--text-muted); }
 
+.badge-purple { background: #e8d5f5; color: #7b2d8e; }
+
+.dark .badge-purple { background: #2d1b3e; color: #c792ea; }
+
+.badge-neutral { background: var(--bg-secondary); color: var(--text-muted); }
 /* ======== DRAWER ======== */
 .drawer-overlay {
   position: fixed; inset: 0;

@@ -7,6 +7,8 @@ export async function getDashboardStats(userId: string) {
   const session = await auth();
   if (!session?.user) throw new Error("Не авторизован");
 
+  const emp = await prisma.employee.findUnique({ where: { userId } });
+
   const [
     totalDocuments,
     draftDocuments,
@@ -14,6 +16,9 @@ export async function getDashboardStats(userId: string) {
     approved,
     pendingApprovals,
     unreadNotifications,
+    totalAssignments,
+    pendingAssignments,
+    overdueAssignments,
   ] = await Promise.all([
     prisma.internalDocument.count({ where: { authorId: userId } }),
     prisma.internalDocument.count({ where: { authorId: userId, status: "DRAFT" } }),
@@ -23,6 +28,15 @@ export async function getDashboardStats(userId: string) {
       where: { approverId: userId, decision: null, document: { status: "IN_APPROVAL" } },
     }),
     prisma.notification.count({ where: { userId, isRead: false } }),
+    emp ? prisma.assignment.count({ where: { executorId: emp.id } }) : 0,
+    emp ? prisma.assignment.count({ where: { executorId: emp.id, status: "PENDING" } }) : 0,
+    emp ? prisma.assignment.count({
+      where: {
+        executorId: emp.id,
+        status: { in: ["PENDING", "IN_PROGRESS"] },
+        deadline: { lt: new Date() },
+      },
+    }) : 0,
   ]);
 
   return {
@@ -32,6 +46,9 @@ export async function getDashboardStats(userId: string) {
     approved,
     pendingApprovals,
     unreadNotifications,
+    totalAssignments,
+    pendingAssignments,
+    overdueAssignments,
   };
 }
 

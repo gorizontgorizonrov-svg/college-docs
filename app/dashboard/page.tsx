@@ -8,6 +8,7 @@ import {
   IconUser, IconInbox, IconArchive, IconUsers, IconShield,
   IconLayoutGrid, IconActivity, IconGitBranch, IconBell,
   IconSignature, IconBook, IconEdit, IconSettings,
+  IconChecklist,
 } from "@tabler/icons-react";
 import { getDict } from "@/lib/i18n/getDict";
 import { getLocale } from "@/lib/i18n/server";
@@ -104,9 +105,11 @@ export default async function DashboardPage() {
     RETURN: "вернул(а)", SIGN: "подписал(а)",
     REGISTER: "зарегистрировал(а)", ARCHIVE: "архивировал(а)",
     LOGIN: "вошёл(ла)", DOWNLOAD: "скачал(а)",
+    ASSIGNMENT_CREATE: "создал(а)", ASSIGNMENT_UPDATE_STATUS: "изменил(а)",
   };
   const entityLabels: Record<string, string> = {
     InternalDocument: "документ", IncomingDocument: "входящий",
+    Assignment: "поручение",
   };
 
   const typeIconMap: Record<string, string> = {
@@ -142,7 +145,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* STAT TABS */}
+        {/* STAT TABS */}
       <div className="stat-tabs anim-stagger">
         <Link href="/documents" className="stab">
           <div className="stab-header">
@@ -175,6 +178,14 @@ export default async function DashboardPage() {
           </div>
           <div className="stab-val">{stats.approved}</div>
           <div className="stab-sub">Завершённых</div>
+        </Link>
+        <Link href="/assignments" className="stab">
+          <div className="stab-header">
+            <div className="stab-icon ic-purple"><IconChecklist size={14} /></div>
+            <span className="stab-lbl">Поручения</span>
+          </div>
+          <div className="stab-val">{stats.pendingAssignments}</div>
+          <div className="stab-sub">{stats.overdueAssignments > 0 ? `${stats.overdueAssignments} просрочено` : "Ожидают"}</div>
         </Link>
       </div>
 
